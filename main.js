@@ -2,6 +2,7 @@ var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 var roleRunner = require('role.runner');
+var roleEHarvester = require('role.eHarvester');
 
 function notError(val) {
     return typeof(val) === 'string';
@@ -22,7 +23,9 @@ module.exports.loop = function () {
     var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
     var runners = _.filter(Game.creeps, (creep) => creep.memory.role == 'runner');
 
-    if(harvesters.length < 3) {
+    if (_.filter(Game.creeps, (creep) => creep.memory.role == 'eHarvester').length < 1) {
+         Game.spawns['Origin'].createCreep([WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE], undefined, {role: 'eHarvester', sourceFlag: 'Controller2', sourceId: '5873bde111e3e4361b4d9f2a'});
+    } else if(harvesters.length < 3) {
         var newName = Game.spawns['Origin'].createCreep([WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE], undefined, {role: 'harvester'});
         if (notError(newName)) console.log('Spawning new harvester: ' + newName);
 
@@ -37,7 +40,7 @@ module.exports.loop = function () {
     } else if (upgraders.length < 2) {
         var newName = Game.spawns['Origin'].createCreep([WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE], undefined, {role: 'upgrader'});
         if (notError(newName)) console.log('Spawning new upgrader: ' + newName);
-    } else if (tHarvesters.length < 3) {
+    } else if (tHarvesters.length < 2) {
         var newName = Game.spawns['Origin'].createCreep([WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE], undefined, {role: 'travelling harvester', sourceFlag: 'Controller1', targetFlag: 'Controller2'});
         if (notError(newName)) console.log('Spawning new travelling harvester: ' + newName);
     }
@@ -61,6 +64,9 @@ module.exports.loop = function () {
                 break;
             case 'runner':
                 roleRunner.run(creep);
+                break;
+            case 'eHarvester':
+                roleEHarvester.run(creep);
                 break;
         }
     }
