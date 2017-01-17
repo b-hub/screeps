@@ -5,6 +5,15 @@ function moveToSourceFlag(creep) {
     // }
 }
 
+function addContainerToMemory(sourceId, containerId) {
+    if (!Memory.outContainers) {
+        Memory.outContainers = {};
+    }
+    if (!Memory.outContainers[containerId]) {
+        Memory.outContainers[sourceId] = containerId;
+    }
+}
+
 function harvest(creep) {
     creep.memory.action = "harvesting";
     var source = Game.getObjectById(creep.memory.sourceId);
@@ -25,6 +34,7 @@ function store(creep) {
     }
     if (container) {
         creep.memory.containerId = container.id;
+        addContainerToMemory(container.id);
         creep.memory.contructionSiteId = undefined;
 
         if (container.hits < container.hitsMax) {
@@ -46,9 +56,11 @@ function build(creep) {
         : searchSourceForConstructionsSite(creep);
 
     if (buildSite) {
-        if (creep.build(buildSite) == ERR_NOT_IN_RANGE) {
+        var code = creep.build(buildSite);
+        if (code == ERR_NOT_IN_RANGE || code == ERR_INVALID_TARGET) {
             creep.moveTo(buildSite);
         }
+        creep.memory.constructionSiteId = buildSite.id;
     } else {
         createContainer(creep);
     }
@@ -63,26 +75,26 @@ function createContainer(creep) {
 }
 
 function searchSourceForConstructionsSite(creep) {
-    var searchDistance = 2;
+    var searchDistance = 3;
     var sourcePos = Game.getObjectById(creep.memory.sourceId).pos;
     var found = creep.room.lookForAtArea(LOOK_CONSTRUCTION_SITES,
-                              sourcePos.y + searchDistance,
-                              sourcePos.x - searchDistance,
                               sourcePos.y - searchDistance,
+                              sourcePos.x - searchDistance,
+                              sourcePos.y + searchDistance,
                               sourcePos.x + searchDistance, true);
-    return (found.length) ? found[0] : null;
+    return (found.length) ? found[0].constructionSite : null;
 }
 
 function searchSourceForContainer(creep) {
-    var searchDistance = 2;
+    var searchDistance = 3;
     var sourcePos = Game.getObjectById(creep.memory.sourceId).pos;
     var found = _.filter(creep.room.lookForAtArea(LOOK_STRUCTURES,
-                              sourcePos.y + searchDistance,
-                              sourcePos.x - searchDistance,
                               sourcePos.y - searchDistance,
+                              sourcePos.x - searchDistance,
+                              sourcePos.y + searchDistance,
                               sourcePos.x + searchDistance, true),
-                f => f.structureType == STRUCTURE_CONTAINER);
-    return (found.length) ? found[0] : null;
+                f => f.structure.structureType == STRUCTURE_CONTAINER);
+    return (found.length) ? found[0].structure : null;
 }
 
 function getIdealContainerPos(creep) {
@@ -106,6 +118,14 @@ function run(creep) {
                 harvest(creep);
             } else {
                 build(creep);
+            }
+            break;
+        case 'storing':
+            if (creep.carry.energy == 0) {
+                creep.say("harvesting");
+                harvest(creep);
+            } else {
+                store(creep);
             }
             break;
         default:
