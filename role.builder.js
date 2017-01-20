@@ -44,12 +44,11 @@ function run(creep) {
             }
         }
     } else {
-        var sources = [].concat.apply([], Object.keys(Game.rooms)
-                .map(function(e){return Game.rooms[e].find(FIND_STRUCTURES, {
+        var sources = creep.room.find(FIND_STRUCTURES, {
             filter: (structure) => {
                 return (structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] > 0;
             }
-        });}));
+        });
         if (sources.length) {
             if(creep.withdraw(sources[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(sources[0]);

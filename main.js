@@ -38,13 +38,15 @@ module.exports.loop = function () {
             var newName = Game.spawns['Origin'].createCreep([WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE], undefined, {role: 'eHarvester', sourceFlag: source.flagName, sourceId: source.id});
             if (notError(newName)) console.log('Spawning new eHarvester: ' + newName + ' - ' + source.id)
         }
-        if (Memory.outContainers[source.id] && _.filter(Game.creeps, (creep) => creep.memory.role == 'eRunner' && creep.memory.withdrawTargetId == Memory.outContainers[source.id]).length < 1) {
-            var newName = Game.spawns['Origin'].createCreep([CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE], undefined, {role: 'eRunner', sourceFlag: 'Controller1', targetFlag: source.flagName, withdrawTargetId: Memory.outContainers[source.id]});
+        var outContainerId = Memory.outContainers[source.id];
+        
+        if (outContainerId && Game.getObjectById(outContainerId) && _.filter(Game.creeps, (creep) => creep.memory.role == 'eRunner' && creep.memory.withdrawTargetId == outContainerId).length < 2) {
+            var newName = Game.spawns['Origin'].createCreep([CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE], undefined, {role: 'eRunner', sourceFlag: 'Controller1', targetFlag: source.flagName, withdrawTargetId: outContainerId});
             if (notError(newName)) console.log('Spawning new eRunner: ' + newName + ' - ' + source.id)
         }
     }
 
-    if(harvesters.length < 3) {
+    if(harvesters.length < 2) {
         var newName = Game.spawns['Origin'].createCreep([WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE], undefined, {role: 'harvester'});
         if (notError(newName)) console.log('Spawning new harvester: ' + newName);
 
@@ -56,14 +58,14 @@ module.exports.loop = function () {
         var newName = Game.spawns['Origin'].createCreep([WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE], undefined, {role: 'builder'});
         if (notError(newName)) console.log('Spawning new builder: ' + newName);
 
-    } else if (upgraders.length < 3) {
-        var newName = Game.spawns['Origin'].createCreep([WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE], undefined, {role: 'upgrader'});
+    } else if (upgraders.length < 5) {
+        var newName = Game.spawns['Origin'].createCreep([WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE], undefined, {role: 'upgrader'});
         if (notError(newName)) console.log('Spawning new upgrader: ' + newName);
     } else if (_.filter(Game.creeps, (creep) => creep.memory.role == 'reserver').length < 1) {
         var newName = Game.spawns['Origin'].createCreep([CLAIM,MOVE], undefined, {role: 'reserver', targetFlag: 'Controller2'});
         if (notError(newName)) console.log('Spawning new reserver: ' + newName);
     } else if (_.filter(Game.creeps, (creep) => creep.memory.role === 'guard').length < 2) {
-        var newName = Game.spawns['Origin'].createCreep([ATTACK,ATTACK,ATTACK,TOUGH,TOUGH,TOUGH,MOVE], undefined, {role: 'guard', postFlag: 'Post1'});
+        var newName = Game.spawns['Origin'].createCreep([TOUGH,TOUGH,TOUGH,MOVE,ATTACK,ATTACK,ATTACK], undefined, {role: 'guard', postFlag: 'Post1'});
         if (notError(newName)) console.log('Spawning new guard: ' + newName);
     }
 

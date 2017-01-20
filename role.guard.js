@@ -1,10 +1,10 @@
 function run(creep) {
+
     var post = Game.flags[creep.memory.postFlag];
-    var enemies = creep.room.find(FIND_HOSTILE_CREEPS, {
-        filter: function(object) {
-            return object.getActiveBodyparts(ATTACK) == 0;
-        }
-    });
+    var enemies = [].concat.apply([], Object.keys(Game.rooms)
+                .map(function(e){return Game.rooms[e].find(FIND_HOSTILE_CREEPS);}));
+                
+    console.log(enemies);
     
     if (enemies.length) {
         var target = enemies[0];

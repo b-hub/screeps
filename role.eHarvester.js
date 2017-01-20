@@ -9,7 +9,7 @@ function addContainerToMemory(sourceId, containerId) {
     if (!Memory.outContainers) {
         Memory.outContainers = {};
     }
-    if (!Memory.outContainers[containerId]) {
+    if (!Memory.outContainers[sourceId]) {
         Memory.outContainers[sourceId] = containerId;
     }
 }
