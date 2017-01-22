@@ -3,17 +3,19 @@ function run(creep) {
     if (creep.memory.running && creep.carry.energy == 0) {
         creep.memory.running = false;
     }
-    
+
     if (!creep.memory.running && creep.carry.energy == creep.carryCapacity) {
         creep.memory.running = true;
     }
-    
+
     if (creep.memory.running) {
-        var target = (creep.memory.moveToTarget) ? Game.getObjectById(creep.memory.moveToTarget) : creep.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (structure) => {
-                return (structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_EXTENSION) && structure.energy < structure.energyCapacity;
-            }
-        });
+        var target = (creep.memory.moveToTarget)
+            ? Game.getObjectById(creep.memory.moveToTarget)
+            : creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_EXTENSION) && structure.energy < structure.energyCapacity;
+                }
+            });
 
         if(target) {
             if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -25,8 +27,8 @@ function run(creep) {
         } else {
             creep.memory.tempRole = 'upgrader';
         }
-    
-        
+
+
     } else {
         var sources = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
@@ -44,7 +46,7 @@ function run(creep) {
             creep.memory.targetFlag = 'Controller2';
             creep.memory.sourceFlag = 'Controller1';
         }
-        
+
     }
 }
 

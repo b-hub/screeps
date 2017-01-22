@@ -18,11 +18,20 @@ function run(creep) {
 
         var target = (creep.memory.moveToTarget)
             ? Game.getObjectById(creep.memory.moveToTarget)
-            : creep.pos.findClosestByRange(FIND_STRUCTURES, {
+            : creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType == STRUCTURE_STORAGE)
+                    && structure.store[RESOURCE_ENERGY] < structure.storeCapacity;
+                }
+            })[0];
+
+        if (!target) {
+            target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] < structure.storeCapacity;
                 }
             });
+        }
 
         if(target) {
             if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {

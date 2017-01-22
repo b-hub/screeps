@@ -35,7 +35,7 @@ module.exports.loop = function () {
     for (i in config.sources) {
         var source = config.sources[i];
         if (_.filter(Game.creeps, (creep) => creep.memory.role == 'eHarvester' && creep.memory.sourceId == source.id).length < 1) {
-            var newName = Game.spawns['Origin'].createCreep([WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE], undefined, {role: 'eHarvester', sourceFlag: source.flagName, sourceId: source.id});
+            var newName = Game.spawns['Origin'].createCreep([WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE], undefined, {role: 'eHarvester', sourceFlag: source.flagName, sourceId: source.id});
             if (notError(newName)) console.log('Spawning new eHarvester: ' + newName + ' - ' + source.id)
         }
         var outContainerId = Memory.outContainers[source.id];
@@ -46,11 +46,7 @@ module.exports.loop = function () {
         }
     }
 
-    if(harvesters.length < 2) {
-        var newName = Game.spawns['Origin'].createCreep([WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE], undefined, {role: 'harvester'});
-        if (notError(newName)) console.log('Spawning new harvester: ' + newName);
-
-    } else if (runners.length < 3) {
+    if (runners.length < 3) {
         var newName = Game.spawns['Origin'].createCreep([WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE], undefined, {role: 'runner'});
         if (notError(newName)) console.log('Spawning new runner: ' + newName);
 
@@ -58,7 +54,7 @@ module.exports.loop = function () {
         var newName = Game.spawns['Origin'].createCreep([WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE], undefined, {role: 'builder'});
         if (notError(newName)) console.log('Spawning new builder: ' + newName);
 
-    } else if (upgraders.length < 5) {
+    } else if (upgraders.length < 3) {
         var newName = Game.spawns['Origin'].createCreep([WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE], undefined, {role: 'upgrader'});
         if (notError(newName)) console.log('Spawning new upgrader: ' + newName);
     } else if (_.filter(Game.creeps, (creep) => creep.memory.role == 'reserver').length < 1) {

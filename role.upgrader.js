@@ -1,6 +1,6 @@
 /** @param {Creep} creep **/
 function run(creep) {
-    
+
     if(creep.memory.upgrading && creep.carry.energy == 0) {
         creep.memory.upgrading = false;
         if (creep.memory.tempRole) {
@@ -23,9 +23,17 @@ function run(creep) {
     else {
       var sources = creep.room.find(FIND_STRUCTURES, {
               filter: (structure) => {
-                  return (structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] > 0;
+                  return (structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] > 0;
               }
       });
+
+      if (!sources.length) {
+        sources = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] > 0;
+                }
+        });
+      }
       if (sources.length) {
           if(creep.withdraw(sources[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
               creep.moveTo(sources[0]);
