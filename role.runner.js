@@ -25,14 +25,16 @@ function run(creep) {
                 creep.memory.moveToTarget = undefined;
             }
         } else {
-            creep.memory.tempRole = 'upgrader';
+            //creep.memory.tempRole = 'upgrader';
         }
 
 
     } else {
         var sources = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] > creep.carryCapacity;
+                    return (structure.structureType == STRUCTURE_CONTAINER
+                         || structure.structureType == STRUCTURE_STORAGE)
+                         && structure.store[RESOURCE_ENERGY] > creep.carryCapacity;
                 }
         });
         if (sources.length) {
@@ -43,7 +45,7 @@ function run(creep) {
         if (!sources.length) {
             creep.say("travelling");
             creep.memory.tempRole = 'travelling harvester'
-            creep.memory.targetFlag = 'Controller2';
+            creep.memory.targetFlag = 'Controller1';
             creep.memory.sourceFlag = 'Controller1';
         }
 

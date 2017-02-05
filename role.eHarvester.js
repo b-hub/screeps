@@ -9,9 +9,7 @@ function addContainerToMemory(sourceId, containerId) {
     if (!Memory.outContainers) {
         Memory.outContainers = {};
     }
-    if (!Memory.outContainers[sourceId]) {
-        Memory.outContainers[sourceId] = containerId;
-    }
+    Memory.outContainers[sourceId] = containerId;
 }
 
 function harvest(creep) {
@@ -34,7 +32,7 @@ function store(creep) {
     }
     if (container) {
         creep.memory.containerId = container.id;
-        addContainerToMemory(container.id);
+        addContainerToMemory(creep.memory.sourceId, container.id);
         creep.memory.contructionSiteId = undefined;
 
         if (container.hits < container.hitsMax) {
@@ -51,8 +49,13 @@ function store(creep) {
 // prepare site
 function build(creep) {
     creep.memory.action = "building";
-    var buildSite = (creep.memory.constructionSiteId)
+    
+    var constructionSite = (creep.memory.constructionSiteId)
         ? Game.getObjectById(creep.memory.constructionSiteId)
+        : null;
+    
+    var buildSite = (constructionSite)
+        ? constructionSite
         : searchSourceForConstructionsSite(creep);
 
     if (buildSite) {

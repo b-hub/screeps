@@ -1,20 +1,28 @@
 function run(creep) {
+    if (!creep) return;
 
     var post = Game.flags[creep.memory.postFlag];
-    var enemies = [].concat.apply([], Object.keys(Game.rooms)
-                .map(function(e){return Game.rooms[e].find(FIND_HOSTILE_CREEPS);}));
+    
+    if (!post.room) {
+        creep.moveTo(post);
+        return;
+    }
+                
+    var enemies = creep.room.find(FIND_HOSTILE_CREEPS, {
+        filter: (c) => {
+            return !c.owner || c.owner.username !== 'wiggydave10';
+        }
+    });
 
     if (enemies.length) {
         var target = enemies[0];
-        if(creep.attack(target) == ERR_NOT_IN_RANGE) {
+        var targetName = (target.owner) ? target.owner.username : "NPC";
+        creep.say(targetName);
+        var errorCode = creep.attack(target);
+        if(errorCode == ERR_NOT_IN_RANGE && target.room.name === post.room.name) {
             creep.moveTo(target);
+            return;
         }
-        return;
-    }
-
-    if (creep.room.name !== post.room.name) {
-        creep.moveTo(post.room);
-        return;
     }
 
     creep.moveTo(post);

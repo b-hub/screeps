@@ -1,5 +1,7 @@
 /** @param {Creep} creep **/
 function run(creep) {
+    if (!creep) return;
+
 
     if(creep.memory.upgrading && creep.carry.energy == 0) {
         creep.memory.upgrading = false;
@@ -16,6 +18,15 @@ function run(creep) {
     }
 
     if(creep.memory.upgrading) {
+        var flag = Game.flags[creep.memory.postFlag];
+        if (flag) {
+            if (!flag.room || creep.room.name != flag.room.name) {
+                creep.moveTo(flag);
+                return;
+            }
+        }
+
+        
         if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
             creep.moveTo(creep.room.controller);
         }
@@ -39,14 +50,10 @@ function run(creep) {
               creep.moveTo(sources[0]);
           }
       } else {
-        //   sources = creep.room.find(FIND_SOURCES);
-        //   if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-        //       creep.moveTo(sources[0]);
-        //   }
-            creep.say("travelling");
-            creep.memory.tempRole = 'travelling harvester'
-            creep.memory.targetFlag = 'Controller2';
-            creep.memory.sourceFlag = 'Controller1';
+           sources = creep.room.find(FIND_SOURCES);
+           if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
+               creep.moveTo(sources[0]);
+           }
       }
     }
 }

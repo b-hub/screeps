@@ -20,10 +20,19 @@ function run(creep) {
             ? Game.getObjectById(creep.memory.moveToTarget)
             : creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
+                    return (structure.structureType == STRUCTURE_TOWER)
+                    && structure.energyCapacity - structure.energy > creep.carry.energy;
+                }
+            })[0];
+            
+        if (!target) {
+            target = creep.room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
                     return (structure.structureType == STRUCTURE_STORAGE)
                     && structure.store[RESOURCE_ENERGY] < structure.storeCapacity;
                 }
             })[0];
+        }
 
         if (!target) {
             target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -42,6 +51,16 @@ function run(creep) {
             }
         } else {
             //creep.memory.tempRole = 'upgrader';
+        }
+        
+        var repairTargets = creep.pos.findInRange(FIND_STRUCTURES, 3, {
+            filter: (s) => {
+                return s.structureType == STRUCTURE_ROAD && s.hits < s.hitsMax;
+            }
+        });
+        
+        if (repairTargets.length) {
+            creep.repair(repairTargets[0]);
         }
 
 
