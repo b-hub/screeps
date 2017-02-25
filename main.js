@@ -19,7 +19,7 @@ function notError(val) {
 
 function spawner(spawn) {
     if (_.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && creep.memory.spawn == 'Origin2').length < 3){
-        Game.spawns['Origin2'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'builder', spawn: 'Origin2'});
+        //Game.spawns['Origin2'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'builder', spawn: 'Origin2'});
     }
     
     if (_.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.memory.postFlag == 'Home2' && creep.ticksToLive > 100).length < 2) {
@@ -29,7 +29,7 @@ function spawner(spawn) {
     var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
     var tHarvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'travelling harvester');
     var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
-    var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
+    var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder' && creep.memory.spawn != 'Origin2');
     var runners = _.filter(Game.creeps, (creep) => creep.memory.role == 'runner');
     
     if (Object.keys(Game.creeps).length == 0) {
@@ -60,7 +60,7 @@ function spawner(spawn) {
         var newName = Game.spawns['Origin'].createCreep([WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE], undefined, {role: 'builder'});
         if (notError(newName)) console.log('Spawning new builder: ' + newName);
 
-    } else if (upgraders.length < 2) {
+    } else if (_.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.memory.postFlag != 'Home2' && creep.ticksToLive > 100).length < 2) {
         var newName = Game.spawns['Origin'].createCreep([WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE], undefined, {role: 'upgrader'});
         if (notError(newName)) console.log('Spawning new upgrader: ' + newName);
     } else if (_.filter(Game.creeps, (creep) => creep.memory.role == 'reserver').length < 1) {
@@ -69,11 +69,11 @@ function spawner(spawn) {
     } else if (_.filter(Game.creeps, (creep) => creep.memory.role === 'guard' && creep.memory.postFlag == 'Post1').length < 1) {
         var newName = Game.spawns['Origin'].createCreep([TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK], undefined, {role: 'guard', postFlag: 'Post1'});
         if (notError(newName)) console.log('Spawning new guard: ' + newName);
-    } else if (_.filter(Game.creeps, (creep) => creep.memory.role === 'guard' && creep.memory.postFlag == 'Post10' && creep.ticksToLive > 100).length < 3) {
-        var newName = Game.spawns['Origin'].createCreep([TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK], undefined, {role: 'guard', postFlag: 'Post10'});
+    } else if (_.filter(Game.creeps, (creep) => creep.memory.role === 'guard' && creep.memory.postFlag == 'Home2' && creep.ticksToLive > 100).length < 0) {
+        var newName = Game.spawns['Origin'].createCreep([TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK], undefined, {role: 'guard', postFlag: 'Home2'});
         if (notError(newName)) console.log('Spawning new guard: ' + newName);
-    } else if (_.filter(Game.creeps, (creep) => creep.memory.role === 'healer' && creep.memory.postFlag == 'Post9' && creep.ticksToLive > 100).length < 1) {
-        var newName = Game.spawns['Origin'].createCreep([TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,HEAL,HEAL], undefined, {role: 'healer', postFlag: 'Post9'});
+    } else if (_.filter(Game.creeps, (creep) => creep.memory.role === 'healer' && creep.memory.postFlag == 'Home2' && creep.ticksToLive > 100).length < 0) {
+        var newName = Game.spawns['Origin'].createCreep([TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,HEAL,HEAL], undefined, {role: 'healer', postFlag: 'Home2'});
         if (notError(newName)) console.log('Spawning new healer: ' + newName);
     }
 }

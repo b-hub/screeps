@@ -39,17 +39,18 @@ function run(creep) {
       });
 
       if (!sources.length) {
-        sources = creep.room.find(FIND_STRUCTURES, {
+        sources = [creep.pos.findClosestByRange(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] > 0;
+                    return (structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] > creep.carryCapacity;
                 }
-        });
+        })];
       }
-      if (sources.length) {
+      if (sources.length && sources[0]) {
           if(creep.withdraw(sources[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
               creep.moveTo(sources[0]);
           }
       } else {
+          console.log("here!");
            sources = creep.room.find(FIND_SOURCES);
            if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
                creep.moveTo(sources[0]);

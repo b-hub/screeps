@@ -29,8 +29,10 @@ function run(creep) {
         
         var buildJob = (buildTarget)
             ? buildTarget
-            : firstOrDefault([].concat.apply([], Object.keys(Game.rooms)
-                .map(function(e){return Game.rooms[e].find(FIND_CONSTRUCTION_SITES);})));
+            // : firstOrDefault([].concat.apply([], Object.keys(Game.rooms)
+            //     .map(function(e){return Game.rooms[e].find(FIND_CONSTRUCTION_SITES);})));
+            : firstOrDefault(creep.room.find(FIND_CONSTRUCTION_SITES));
+            
                 
         var repairLimit = (buildJob) ? 0.7 : 1;
         if (buildTarget) {
@@ -62,12 +64,12 @@ function run(creep) {
         });
         
         if (!sources.length) {
-            sources = creep.room.find(FIND_STRUCTURES, {
+            sources = [creep.pos.findClosestByRange(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType == STRUCTURE_CONTAINER)
                          && structure.store[RESOURCE_ENERGY] > 0;
                 }
-            });   
+            })];   
         }
         
         if (sources.length) {

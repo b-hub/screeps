@@ -5,8 +5,8 @@ module.exports = {
         {id: '5873bde111e3e4361b4d9f2a' , flagName: 'Controller2', runnerLimit: 2}, 
         {id: '5873bdde11e3e4361b4d9eeb', flagName: 'Controller3', runnerLimit: 2},
         {id: '5873bdde11e3e4361b4d9eee', flagName: 'Controller4', runnerLimit: 2},
-        {id: '5873bde111e3e4361b4d9f30', flagName: 'Post6', runnerLimit: 0},
-        {id: '5873bde111e3e4361b4d9f31', flagName: 'Post6', runnerLimit: 0},
+        {id: '5873bde111e3e4361b4d9f30', flagName: 'Post6', runnerLimit: 1},
+        {id: '5873bde111e3e4361b4d9f31', flagName: 'Post6', runnerLimit: 1},
         //{id: '5873bddb11e3e4361b4d9ea8', flagName: 'Controller5', runnerLimit: 2}
     ],
     spawnHalt: false
