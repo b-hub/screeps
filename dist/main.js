@@ -2,23 +2,28 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var RunnerCreepState;
-(function (RunnerCreepState) {
-    RunnerCreepState[RunnerCreepState["harvesting"] = 0] = "harvesting";
-    RunnerCreepState[RunnerCreepState["running"] = 1] = "running";
-})(RunnerCreepState || (RunnerCreepState = {}));
-class RunnerCreep {
+var SteveState;
+(function (SteveState) {
+    SteveState[SteveState["harvesting"] = 0] = "harvesting";
+    SteveState[SteveState["upgrading"] = 1] = "upgrading";
+})(SteveState || (SteveState = {}));
+class Steve {
     static run(creep) {
         var memory = creep.memory;
         switch (memory.state) {
             default:
-            case RunnerCreepState.harvesting:
+            case SteveState.harvesting:
                 var source = getClosestSource(creep);
                 memory.state = harvest(creep, source);
                 break;
-            case RunnerCreepState.running:
-                var spawn = getClosestSpawn(creep);
-                memory.state = running(creep, spawn);
+            case SteveState.upgrading:
+                var controller = creep.room.controller;
+                if (controller === undefined) {
+                    creep.say("no controller!");
+                }
+                else {
+                    memory.state = upgrade(creep, controller);
+                }
                 break;
         }
     }
@@ -29,30 +34,24 @@ function harvest(creep, source) {
         creep.moveTo(source);
     }
     if (creep.store.getFreeCapacity() === 0) {
-        creep.say("running");
-        return RunnerCreepState.running;
+        creep.say("upgrading");
+        return SteveState.upgrading;
     }
-    return RunnerCreepState.harvesting;
+    return SteveState.harvesting;
 }
-function running(creep, spawn) {
-    var result = creep.transfer(spawn, RESOURCE_ENERGY);
+function upgrade(creep, controller) {
+    var result = creep.upgradeController(controller);
     if (result === ERR_NOT_IN_RANGE) {
-        creep.moveTo(spawn);
-    }
-    else if (result === ERR_FULL) {
-        creep.drop(RESOURCE_ENERGY);
+        creep.moveTo(controller);
     }
     if (creep.store.getUsedCapacity() === 0) {
         creep.say("harvesting");
-        return RunnerCreepState.harvesting;
+        return SteveState.harvesting;
     }
-    return RunnerCreepState.running;
+    return SteveState.upgrading;
 }
 function getClosestSource(creep) {
     return creep.room.find(FIND_SOURCES)[0];
-}
-function getClosestSpawn(creep) {
-    return creep.room.find(FIND_MY_SPAWNS)[0];
 }
 
 var CreepRole;
@@ -71,7 +70,7 @@ class CreepManager {
         var creepRole = creep.memory.role;
         switch (creepRole) {
             case CreepRole.runner:
-                RunnerCreep.run(creep);
+                Steve.run(creep);
                 break;
             default:
                 console.log(`unknown creep role '${creepRole}'`);

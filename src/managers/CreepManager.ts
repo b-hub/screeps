@@ -1,4 +1,4 @@
-import { RunnerCreep } from "creeps/RunnerCreep";
+import { Steve } from "creeps/Steve";
 import { CreepRole } from "enums/CreepRole";
 
 export class CreepManager {
@@ -15,7 +15,7 @@ export class CreepManager {
 
         switch (creepRole) {
             case CreepRole.runner:
-                RunnerCreep.run(creep);
+                Steve.run(creep);
                 break;
             default:
                 console.log(`unknown creep role '${creepRole}'`);
