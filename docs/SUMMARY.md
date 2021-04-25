@@ -9,4 +9,5 @@
 ## Blog
 
 * [A Steve is Born](blog/a-steve-is-born.md)
+* [MVP](blog/mvp.md)
 
