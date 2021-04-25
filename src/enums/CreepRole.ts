@@ -1,3 +1,3 @@
 export enum CreepRole {
-    runner = 1
+    steve = 1
 }

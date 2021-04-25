@@ -18,7 +18,7 @@ export class SpawnManager {
             spawn.spawnCreep([WORK, MOVE, CARRY], "Steve", {
                 dryRun: false,
                 memory: {
-                    role: CreepRole.runner,
+                    role: CreepRole.steve,
                     room: "",
                     working: false
                 }

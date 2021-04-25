@@ -56,7 +56,7 @@ function getClosestSource(creep) {
 
 var CreepRole;
 (function (CreepRole) {
-    CreepRole[CreepRole["runner"] = 1] = "runner";
+    CreepRole[CreepRole["steve"] = 1] = "steve";
 })(CreepRole || (CreepRole = {}));
 
 class CreepManager {
@@ -69,7 +69,7 @@ class CreepManager {
     static runCreep(creep) {
         var creepRole = creep.memory.role;
         switch (creepRole) {
-            case CreepRole.runner:
+            case CreepRole.steve:
                 Steve.run(creep);
                 break;
             default:
@@ -94,7 +94,7 @@ class SpawnManager {
             spawn.spawnCreep([WORK, MOVE, CARRY], "Steve", {
                 dryRun: false,
                 memory: {
-                    role: CreepRole.runner,
+                    role: CreepRole.steve,
                     room: "",
                     working: false
                 }

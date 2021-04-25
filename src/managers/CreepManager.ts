@@ -14,7 +14,7 @@ export class CreepManager {
         var creepRole = creep.memory.role;
 
         switch (creepRole) {
-            case CreepRole.runner:
+            case CreepRole.steve:
                 Steve.run(creep);
                 break;
             default:
