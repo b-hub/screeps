@@ -10,4 +10,5 @@
 
 * [A Steve is Born](blog/a-steve-is-born.md)
 * [MVP](blog/mvp.md)
+* [New World](blog/new-world.md)
 
