@@ -1,5 +1,5 @@
 # Screeps AI
-This is a personal implementation of a [Screeps](https://screeps.com/) AI. The aim of the project is to create an AI only using the default libraries available in Screeps and to document my progress.
+This is a personal implementation of a [Screeps](https://screeps.com/) AI. The aim of the project is to create an AI only using the default libraries available in Screeps and to [document my progress](https://b-hub.gitbook.io/screeps/).
 
 ## Tools used
 [screeps-typescript-starter](https://github.com/screepers/screeps-typescript-starter)
