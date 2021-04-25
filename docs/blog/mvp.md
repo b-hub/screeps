@@ -1,5 +1,5 @@
 ---
-description: Minimum code needed to progress in Screeps
+description: 25/04/2021 - Minimum code needed to progress in Screeps
 ---
 
 # MVP
