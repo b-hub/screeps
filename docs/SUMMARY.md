@@ -1,5 +1,12 @@
 # Table of contents
 
 * [Introduction](README.md)
-* [Development Environment](development-environment.md)
+
+## Infrastructure
+
+* [Development Environment](infrastructure/development-environment.md)
+
+## Blog
+
+* [A Steve is Born](blog/a-steve-is-born.md)
 
