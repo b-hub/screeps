@@ -12,3 +12,7 @@
 * [MVP](blog/mvp.md)
 * [New World](blog/new-world.md)
 
+---
+
+* [GitHub Repository](https://github.com/b-hub/Screeps)
+
