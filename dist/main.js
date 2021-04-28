@@ -112,11 +112,18 @@ function cleanMemory() {
     }
 }
 
+function saveStats() {
+    Memory.stats = Memory.stats || {};
+    Memory.stats.cpuLimit = Game.cpu.limit;
+    Memory.stats.gclProgress = Game.gcl.progress;
+}
+
 const gameLoop = () => {
     console.log(`Current game tick is ${Game.time}`);
     cleanMemory();
     SpawnManager.run();
     CreepManager.run();
+    saveStats();
 };
 
 //import { ErrorMapper } from "utils/ErrorMapper";

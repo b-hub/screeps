@@ -10,6 +10,7 @@ interface CreepMemory {
 interface Memory {
   uuid: number;
   log: any;
+  stats: any;
 }
 
 // `global` extension samples
@@ -18,3 +19,5 @@ declare namespace NodeJS {
     log: any;
   }
 }
+
+
