@@ -66,7 +66,7 @@ export class SpawnManager {
             spawn.spawnCreep([WORK, MOVE, CARRY], "Steve", {
                 dryRun: false,
                 memory: {
-                    role: CreepRole.runner,
+                    role: CreepRole.steve,
                     room: "",
                     working: false
                 }
@@ -79,7 +79,7 @@ export class SpawnManager {
 ```
 {% endcode %}
 
-The SpawnManager is responsible for creating new creeps. This initial code only allows for one creep to exist at a time, called Steve. Steve is hard-coded to have a role of 'runner', but this will change in the future to be more dynamic.
+The SpawnManager is responsible for creating new creeps. This initial code only allows for one creep to exist at a time, called Steve. Steve is hard-coded to have a role of 'steve', but this will change in the future to be more dynamic.
 
 ![A Steve is Born](../.gitbook/assets/a-steve-is-born.gif)
 

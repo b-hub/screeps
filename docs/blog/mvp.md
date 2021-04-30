@@ -26,7 +26,7 @@ export class CreepManager {
         var creepRole = creep.memory.role;
 
         switch (creepRole) {
-            case CreepRole.runner:
+            case CreepRole.steve:
                 Steve.run(creep);
                 break;
             default:
@@ -79,11 +79,11 @@ export class Steve {
 ```
 {% endcode %}
 
-A runner can be one of two states: 'harvesting' or 'running'. 
+A runner can be one of two states: 'harvesting' or 'upgrading'. 
 
 #### Harvesting
 
-When harvesting the creep moves to the nearest energy source and starts harvesting. Once full, the creep changes its state to 'running'
+When harvesting the creep moves to the nearest energy source and starts harvesting. Once full, the creep changes its state to 'upgrading'
 
 ```typescript
 function harvest(creep: Creep, source: Source): RunnerCreepState {
@@ -103,7 +103,7 @@ function harvest(creep: Creep, source: Source): RunnerCreepState {
 
 #### Upgrading
 
-When running the creep will move to the nearest spawn structure and transfer all of its energy, after which the state will go back to harvesting.
+When running the creep will move to the nearest spawn structure and transfer all of its energy, after which the state will go back to 'harvesting'.
 
 ```typescript
 function upgrade(creep: Creep, controller: StructureController): SteveState {
