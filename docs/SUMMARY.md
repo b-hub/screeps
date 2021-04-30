@@ -1,7 +1,6 @@
 # Table of contents
 
 * [Introduction](README.md)
-* [Resources](resouces.md)
 
 ## Infrastructure
 
@@ -15,5 +14,6 @@
 
 ---
 
+* [Resources](resouces.md)
 * [GitHub Repository](https://github.com/b-hub/Screeps)
 
