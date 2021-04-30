@@ -4,6 +4,7 @@
 
 ## Infrastructure
 
+* [Resouces](infrastructure/resouces.md)
 * [Development Environment](infrastructure/development-environment.md)
 
 ## Blog
