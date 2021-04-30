@@ -122,5 +122,5 @@ function upgrade(creep: Creep, controller: StructureController): SteveState {
 }
 ```
 
-![Steve harvesting and upgrading](../.gitbook/assets/mvp.gif)
+![Steve harvesting and upgrading](../../.gitbook/assets/mvp.gif)
 

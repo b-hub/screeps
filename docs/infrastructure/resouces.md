@@ -2,7 +2,7 @@
 description: Links to useful resources
 ---
 
-# Resouces
+# Resources
 
 Useful resources that are available
 

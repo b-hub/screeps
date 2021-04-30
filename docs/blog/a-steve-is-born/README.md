@@ -81,7 +81,7 @@ export class SpawnManager {
 
 The SpawnManager is responsible for creating new creeps. This initial code only allows for one creep to exist at a time, called Steve. Steve is hard-coded to have a role of 'steve', but this will change in the future to be more dynamic.
 
-![A Steve is Born](../.gitbook/assets/a-steve-is-born.gif)
+![A Steve is Born](../../.gitbook/assets/a-steve-is-born.gif)
 
 The above GIF shows the code running in a training room. 
 

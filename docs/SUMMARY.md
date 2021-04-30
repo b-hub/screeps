@@ -4,14 +4,14 @@
 
 ## Infrastructure
 
-* [Resouces](infrastructure/resouces.md)
+* [Resources](infrastructure/resouces.md)
 * [Development Environment](infrastructure/development-environment.md)
 
 ## Blog
 
-* [A Steve is Born](blog/a-steve-is-born.md)
-* [MVP](blog/mvp.md)
-* [New World](blog/new-world.md)
+* [A Steve is Born](blog/a-steve-is-born/README.md)
+  * [New World](blog/a-steve-is-born/new-world.md)
+  * [MVP](blog/a-steve-is-born/mvp.md)
 
 ---
 
