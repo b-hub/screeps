@@ -1,10 +1,10 @@
 # Table of contents
 
 * [Introduction](README.md)
+* [Resources](resouces.md)
 
 ## Infrastructure
 
-* [Resources](infrastructure/resouces.md)
 * [Development Environment](infrastructure/development-environment.md)
 
 ## Blog
