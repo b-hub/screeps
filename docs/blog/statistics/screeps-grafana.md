@@ -101,7 +101,9 @@ No such metric exists. In order to fix the dashboard I needed to replaced the te
 
 > The statsd server collects gauges under the stats.gauges prefix.
 
-![](../../.gitbook/assets/image.png)
+There was also a minor changed required for the 'room' variable which is defined in the dashboard settings. The stats exported on screeps uses the key 'rooms' instead of the example dashboard's 'room'.
+
+![](../../.gitbook/assets/image%20%282%29.png)
 
 #### Unfortunate Insight
 
