@@ -6,6 +6,19 @@ description: My experience setting up the screeps-grafana project
 
 One of the projects listed on the screeps third-party services page is [screeps-grafana](https://github.com/screepers/screeps-grafana). This is my experience getting a working dashboard showing stats collected from my screeps account.
 
+## Technology Stack Overview
+
+#### Technology
+
+* [Docker](https://www.docker.com/)
+* [StatsD](https://statsd.readthedocs.io/en/v3.1/index.html)
+* [Graphite](https://grafana.com/docs/grafana/latest/datasources/graphite/)
+* [Grafana](https://grafana.com/)
+
+#### Project Diagram
+
+TODO
+
 ## Initial setup - Docker
 
 Following the steps listed for the self-hosted option, I downloaded the repository and got to work.
