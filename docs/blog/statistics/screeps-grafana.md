@@ -8,6 +8,8 @@ One of the projects listed on the screeps third-party services page is [screeps-
 
 ## Technology Stack Overview
 
+...or as Grafana puts it 'Observability Stack'
+
 #### Technology
 
 * [StatsD](https://github.com/statsd/statsd)
