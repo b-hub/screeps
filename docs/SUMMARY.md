@@ -7,6 +7,7 @@
 * [Development Environment](infrastructure/development-environment/README.md)
   * [Typescript Starter](infrastructure/development-environment/typescript-starter.md)
   * [Unit Testing](infrastructure/development-environment/unit-testing.md)
+* [Screeps AI](infrastructure/screeps-ai.md)
 * [Monitoring](infrastructure/monitoring.md)
 
 ## Blog
