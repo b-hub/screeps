@@ -10,14 +10,42 @@ One of the projects listed on the screeps third-party services page is [screeps-
 
 #### Technology
 
-* [Docker](https://www.docker.com/)
-* [StatsD](https://statsd.readthedocs.io/en/v3.1/index.html)
-* [Graphite](https://grafana.com/docs/grafana/latest/datasources/graphite/)
-* [Grafana](https://grafana.com/)
+* [StatsD](https://github.com/statsd/statsd)
+* [Graphite](https://graphite.readthedocs.io/en/stable/index.html)
+* [Grafana](https://grafana.com/docs/grafana/latest/basics/)
 
 #### Project Diagram
 
-TODO
+![](../../.gitbook/assets/screeps-grafana.png)
+
+### StatsD
+
+[StatsD ](https://github.com/statsd/statsd)is a network daemon that runs on the Node.js platform. It was originally written at [Etsy](http://www.etsy.com/) and released with a [blog post](https://codeascraft.etsy.com/2011/02/15/measure-anything-measure-everything/) about how it works and why we created it.
+
+It is worth reading the blog post, but to summarise...
+
+StatsD is a small server and accompanying client code which allows collecting metrics within an application. It was built to make sure the performance of the application is unaffected, using UDP for sending 'fire and forget' metrics and sampling parameters. The server then aggregates the data and pushes it to Graphite, acting as a buffer.
+
+### Graphite
+
+[Graphite](https://graphite.readthedocs.io/en/stable/index.html)'s documentation makes it very clear what it does:
+
+1. Store numeric time-series data
+2. Render graphs of this data on demand
+
+Graphite consists of 3 software components:
+
+1. **carbon** - a [Twisted](http://www.twistedmatrix.com/) daemon that listens for time-series data
+2. **whisper** - a simple database library for storing time-series data \(similar in design to [RRD](http://oss.oetiker.ch/rrdtool/)\)
+3. **graphite webapp** - A [Django](http://www.djangoproject.com/) webapp that renders graphs on-demand using [Cairo](http://www.cairographics.org/)
+
+### Grafana
+
+[Grafana](https://grafana.com/docs/grafana/latest/basics/) is an open source visualization and analytics software. It allows you to query, visualize, alert on, and explore your metrics no matter where they are stored. In plain English, it provides you with tools to turn your time-series database \(TSDB\) data into beautiful graphs and visualizations.
+
+Grafana acts as a standardised front-end for the various database/graphing engines it supports, adding higher-level functionality.
+
+
 
 ## Initial setup - Docker
 
