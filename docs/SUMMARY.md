@@ -12,6 +12,7 @@
 
 ## Blog
 
+* [Initial Plan](blog/initial-plan.md)
 * [Adventures of Steve](blog/adventures-of-steve/README.md)
   * [A Steve is Born](blog/adventures-of-steve/a-steve-is-born.md)
   * [MVP](blog/adventures-of-steve/mvp.md)
