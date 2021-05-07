@@ -1,7 +1,7 @@
 import { CreepManager } from "managers/CreepManager";
 import { SpawnManager } from "managers/SpawnManager";
 import { cleanMemory } from "utils/GameUtils";
-import { saveStats } from "utils/StatsUtils";
+import { exportStats } from "utils/StatsUtils";
 
 export const gameLoop = () => {
   console.log(`Current game tick is ${Game.time}`);
@@ -10,5 +10,5 @@ export const gameLoop = () => {
   SpawnManager.run();
   CreepManager.run();
 
-  saveStats();
+  exportStats();
 };
