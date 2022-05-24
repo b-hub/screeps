@@ -6,6 +6,7 @@ export function exportStats() {
       gcl: {},
       rooms: {},
       cpu: {},
+      tableStats: {}
     };
 
     Memory.stats.time = Game.time;
@@ -36,4 +37,22 @@ export function exportStats() {
     Memory.stats.cpu.bucket        = Game.cpu.bucket;
     Memory.stats.cpu.limit         = Game.cpu.limit;
     Memory.stats.cpu.used          = Game.cpu.getUsed();
+
+    Memory.stats.table = getTableStats();
   }
+
+function getTableStats(): TableStats {
+  var stats: TableStats = {};
+
+  stats["game"] = {
+    "gameTime": "time",
+    "cpuBucket": "cpu.bucket",
+    "cpuLimit": "cpu.limit",
+    "cpuUsed": "cpu.used",
+    "gclProgress": "gcl.progress",
+    "gclProgressTotal": "gcl.progressTotal",
+    "gclLevel": "gcl.level",
+  };
+
+  return stats;
+}

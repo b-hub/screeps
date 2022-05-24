@@ -13,6 +13,14 @@ interface Memory {
   stats: any;
 }
 
+interface TableStats {
+  [tableName: string]: TableStatsTable;
+}
+
+interface TableStatsTable {
+  [columnName: string]: string; // property mapping
+}
+
 // `global` extension samples
 declare namespace NodeJS {
   interface Global {

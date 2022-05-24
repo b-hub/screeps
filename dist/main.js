@@ -145,6 +145,20 @@ function exportStats() {
     Memory.stats.cpu.bucket = Game.cpu.bucket;
     Memory.stats.cpu.limit = Game.cpu.limit;
     Memory.stats.cpu.used = Game.cpu.getUsed();
+    Memory.stats.table = getTableStats();
+}
+function getTableStats() {
+    var stats = {};
+    stats["game"] = {
+        "gameTime": "time",
+        "cpuBucket": "cpu.bucket",
+        "cpuLimit": "cpu.limit",
+        "cpuUsed": "cpu.used",
+        "gclProgress": "gcl.progress",
+        "gclProgressTotal": "gcl.progressTotal",
+        "gclLevel": "gcl.level",
+    };
+    return stats;
 }
 
 const gameLoop = () => {
