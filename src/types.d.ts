@@ -27,5 +27,3 @@ declare namespace NodeJS {
     log: any;
   }
 }
-
-

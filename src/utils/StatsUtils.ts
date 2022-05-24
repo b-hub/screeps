@@ -1,57 +1,57 @@
 // Call this function at the end of your main loop
 
 export function exportStats() {
-    // Reset stats object
-    Memory.stats = {
-      gcl: {},
-      rooms: {},
-      cpu: {},
-      tableStats: {}
-    };
+  // Reset stats object
+  Memory.stats = {
+    gcl: {},
+    rooms: {},
+    cpu: {},
+    tableStats: {}
+  };
 
-    Memory.stats.time = Game.time;
+  Memory.stats.time = Game.time;
 
-    // Collect room stats
-    for (let roomName in Game.rooms) {
-      let room = Game.rooms[roomName];
+  // Collect room stats
+  for (const roomName in Game.rooms) {
+    const room = Game.rooms[roomName];
 
-      let isMyRoom = (room.controller ? room.controller.my : false);
-      if (isMyRoom) {
-        let roomStats: any = Memory.stats.rooms[roomName] = {};
-        roomStats.storageEnergy           = (room.storage ? room.storage.store.energy : 0);
-        roomStats.terminalEnergy          = (room.terminal ? room.terminal.store.energy : 0);
-        roomStats.energyAvailable         = room.energyAvailable;
-        roomStats.energyCapacityAvailable = room.energyCapacityAvailable;
-        roomStats.controllerProgress      = room.controller?.progress;
-        roomStats.controllerProgressTotal = room.controller?.progressTotal;
-        roomStats.controllerLevel         = room.controller?.level;
-      }
+    const isMyRoom = room.controller ? room.controller.my : false;
+    if (isMyRoom) {
+      const roomStats: any = (Memory.stats.rooms[roomName] = {});
+      roomStats.storageEnergy = room.storage ? room.storage.store.energy : 0;
+      roomStats.terminalEnergy = room.terminal ? room.terminal.store.energy : 0;
+      roomStats.energyAvailable = room.energyAvailable;
+      roomStats.energyCapacityAvailable = room.energyCapacityAvailable;
+      roomStats.controllerProgress = room.controller?.progress;
+      roomStats.controllerProgressTotal = room.controller?.progressTotal;
+      roomStats.controllerLevel = room.controller?.level;
     }
-
-    // Collect GCL stats
-    Memory.stats.gcl.progress      = Game.gcl.progress;
-    Memory.stats.gcl.progressTotal = Game.gcl.progressTotal;
-    Memory.stats.gcl.level         = Game.gcl.level;
-
-    // Collect CPU stats
-    Memory.stats.cpu.bucket        = Game.cpu.bucket;
-    Memory.stats.cpu.limit         = Game.cpu.limit;
-    Memory.stats.cpu.used          = Game.cpu.getUsed();
-
-    Memory.stats.table = getTableStats();
   }
 
-function getTableStats(): TableStats {
-  var stats: TableStats = {};
+  // Collect GCL stats
+  Memory.stats.gcl.progress = Game.gcl.progress;
+  Memory.stats.gcl.progressTotal = Game.gcl.progressTotal;
+  Memory.stats.gcl.level = Game.gcl.level;
 
-  stats["game"] = {
-    "gameTime": "time",
-    "cpuBucket": "cpu.bucket",
-    "cpuLimit": "cpu.limit",
-    "cpuUsed": "cpu.used",
-    "gclProgress": "gcl.progress",
-    "gclProgressTotal": "gcl.progressTotal",
-    "gclLevel": "gcl.level",
+  // Collect CPU stats
+  Memory.stats.cpu.bucket = Game.cpu.bucket;
+  Memory.stats.cpu.limit = Game.cpu.limit;
+  Memory.stats.cpu.used = Game.cpu.getUsed();
+
+  Memory.stats.table = getTableStats();
+}
+
+function getTableStats(): TableStats {
+  const stats: TableStats = {};
+
+  stats.game = {
+    gameTime: "time",
+    cpuBucket: "cpu.bucket",
+    cpuLimit: "cpu.limit",
+    cpuUsed: "cpu.used",
+    gclProgress: "gcl.progress",
+    gclProgressTotal: "gcl.progressTotal",
+    gclLevel: "gcl.level"
   };
 
   return stats;
