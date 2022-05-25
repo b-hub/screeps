@@ -3,42 +3,51 @@
 export function exportStats() {
   // Reset stats object
   Memory.stats = {
-    gcl: {},
-    rooms: {},
-    cpu: {},
-    tableStats: {}
+    gcl: getGclStats(),
+    rooms: getRoomStats(),
+    cpu: getCpuStats(),
+    table: getTableStats(),
+    time: Game.time
   };
+}
 
-  Memory.stats.time = Game.time;
+function getRoomStats(): RoomsStats {
+  const roomStats: RoomsStats = {};
 
-  // Collect room stats
   for (const roomName in Game.rooms) {
     const room = Game.rooms[roomName];
 
     const isMyRoom = room.controller ? room.controller.my : false;
     if (isMyRoom) {
-      const roomStats: any = (Memory.stats.rooms[roomName] = {});
-      roomStats.storageEnergy = room.storage ? room.storage.store.energy : 0;
-      roomStats.terminalEnergy = room.terminal ? room.terminal.store.energy : 0;
-      roomStats.energyAvailable = room.energyAvailable;
-      roomStats.energyCapacityAvailable = room.energyCapacityAvailable;
-      roomStats.controllerProgress = room.controller?.progress;
-      roomStats.controllerProgressTotal = room.controller?.progressTotal;
-      roomStats.controllerLevel = room.controller?.level;
+      roomStats[roomName] = {
+        storageEnergy: room.storage ? room.storage.store.energy : 0,
+        terminalEnergy: room.terminal ? room.terminal.store.energy : 0,
+        energyAvailable: room.energyAvailable,
+        energyCapacityAvailable: room.energyCapacityAvailable,
+        controllerProgress: room.controller?.progress,
+        controllerProgressTotal: room.controller?.progressTotal,
+        controllerLevel: room.controller?.level
+      };
     }
   }
 
-  // Collect GCL stats
-  Memory.stats.gcl.progress = Game.gcl.progress;
-  Memory.stats.gcl.progressTotal = Game.gcl.progressTotal;
-  Memory.stats.gcl.level = Game.gcl.level;
+  return roomStats;
+}
 
-  // Collect CPU stats
-  Memory.stats.cpu.bucket = Game.cpu.bucket;
-  Memory.stats.cpu.limit = Game.cpu.limit;
-  Memory.stats.cpu.used = Game.cpu.getUsed();
+function getGclStats(): GclStats {
+  return {
+    progress: Game.gcl.progress,
+    progressTotal: Game.gcl.progressTotal,
+    level: Game.gcl.level
+  };
+}
 
-  Memory.stats.table = getTableStats();
+function getCpuStats(): CpuStats {
+  return {
+    bucket: Game.cpu.bucket,
+    limit: Game.cpu.limit,
+    used: Game.cpu.getUsed()
+  };
 }
 
 function getTableStats(): TableStats {

@@ -7,10 +7,42 @@ interface CreepMemory {
   working: boolean;
 }
 
+interface RoomStats {
+  storageEnergy: number;
+  terminalEnergy: number;
+  energyAvailable: number;
+  energyCapacityAvailable: number;
+  controllerProgress?: number;
+  controllerProgressTotal?: number;
+  controllerLevel?: number;
+}
+
+interface GclStats {
+  progress: number;
+  progressTotal: number;
+  level: number;
+}
+
+interface CpuStats {
+  bucket: number;
+  limit: number;
+  used: number;
+}
+interface RoomsStats {
+  [key: string]: RoomStats
+}
+interface MemoryStats {
+  gcl: GclStats;
+  rooms: RoomsStats;
+  cpu: CpuStats;
+  table: TableStats;
+  time: number;
+}
+
 interface Memory {
   uuid: number;
   log: any;
-  stats: any;
+  stats: MemoryStats;
 }
 
 interface TableStats {

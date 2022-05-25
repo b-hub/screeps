@@ -4,7 +4,9 @@ interface SteveMemory extends CreepMemory {
 
 export enum SteveState {
   harvesting,
-  upgrading
+  upgrading,
+  transferring,
+  null,
 }
 
 export class Steve {
@@ -14,22 +16,29 @@ export class Steve {
     switch (memory.state) {
       default:
       case SteveState.harvesting:
-        var source = getClosestSource(creep);
-        memory.state = harvest(creep, source);
+        memory.state = harvest(creep);
         break;
       case SteveState.upgrading:
-        var controller = creep.room.controller;
-        if (controller === undefined) {
-          creep.say("no controller!");
-        } else {
-          memory.state = upgrade(creep, controller);
-        }
+        memory.state = upgrade(creep);
+        break;
+      case SteveState.transferring:
+        memory.state = transfer(creep);
+        break;
+      case SteveState.null:
+        // do nothing
         break;
     }
   }
 }
 
-function harvest(creep: Creep, source: Source): SteveState {
+function harvest(creep: Creep): SteveState {
+  const source = getClosestSource(creep);
+  if (source === null) {
+    creep.say("Steve has no purpose");
+    creep.suicide();
+    return SteveState.null;
+  }
+
   const result = creep.harvest(source);
   if (result === ERR_NOT_IN_RANGE) {
     creep.moveTo(source);
@@ -43,7 +52,12 @@ function harvest(creep: Creep, source: Source): SteveState {
   return SteveState.harvesting;
 }
 
-function upgrade(creep: Creep, controller: StructureController): SteveState {
+function upgrade(creep: Creep): SteveState {
+  const controller = creep.room.controller;
+  if (controller === undefined) {
+    creep.say("no controller!");
+    return SteveState.transferring;
+  }
   const result = creep.upgradeController(controller);
 
   if (result === ERR_NOT_IN_RANGE) {
@@ -58,10 +72,37 @@ function upgrade(creep: Creep, controller: StructureController): SteveState {
   return SteveState.upgrading;
 }
 
-function getClosestSource(creep: Creep) {
-  return creep.room.find(FIND_SOURCES)[0];
+function transfer(creep: Creep): SteveState {
+  const spawn = getClosestSpawn(creep);
+  if (spawn === null) {
+    creep.say("no spawn!");
+    creep.drop(RESOURCE_ENERGY);
+    return SteveState.upgrading;
+  }
+  const result = creep.transfer(spawn, RESOURCE_ENERGY);
+
+  if (result === ERR_NOT_IN_RANGE) {
+    creep.moveTo(spawn);
+  }
+
+  if (creep.store.getUsedCapacity() === 0) {
+    creep.say("harvesting");
+    return SteveState.upgrading;
+  }
+
+  return SteveState.transferring;
 }
 
-function getClosestSpawn(creep: Creep) {
-  return creep.room.find(FIND_MY_SPAWNS)[0];
+function getClosestSource(creep: Creep): Source | null {
+  const sources = creep.room.find(FIND_SOURCES);
+  return sources.length > 0
+    ? sources[0]
+    : null;
+}
+
+function getClosestSpawn(creep: Creep): StructureSpawn | null {
+  const spawns = creep.room.find(FIND_MY_SPAWNS);
+  return spawns.length > 0
+    ? spawns[0]
+    : null;
 }

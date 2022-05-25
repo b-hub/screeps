@@ -6,30 +6,37 @@ var SteveState;
 (function (SteveState) {
     SteveState[SteveState["harvesting"] = 0] = "harvesting";
     SteveState[SteveState["upgrading"] = 1] = "upgrading";
+    SteveState[SteveState["transferring"] = 2] = "transferring";
+    SteveState[SteveState["null"] = 3] = "null";
 })(SteveState || (SteveState = {}));
 class Steve {
     static run(creep) {
-        var memory = creep.memory;
+        const memory = creep.memory;
         switch (memory.state) {
             default:
             case SteveState.harvesting:
-                var source = getClosestSource(creep);
-                memory.state = harvest(creep, source);
+                memory.state = harvest(creep);
                 break;
             case SteveState.upgrading:
-                var controller = creep.room.controller;
-                if (controller === undefined) {
-                    creep.say("no controller!");
-                }
-                else {
-                    memory.state = upgrade(creep, controller);
-                }
+                memory.state = upgrade(creep);
+                break;
+            case SteveState.transferring:
+                memory.state = transfer(creep);
+                break;
+            case SteveState.null:
+                // do nothing
                 break;
         }
     }
 }
-function harvest(creep, source) {
-    var result = creep.harvest(source);
+function harvest(creep) {
+    const source = getClosestSource(creep);
+    if (source === null) {
+        creep.say("Steve has no purpose");
+        creep.suicide();
+        return SteveState.null;
+    }
+    const result = creep.harvest(source);
     if (result === ERR_NOT_IN_RANGE) {
         creep.moveTo(source);
     }
@@ -39,8 +46,13 @@ function harvest(creep, source) {
     }
     return SteveState.harvesting;
 }
-function upgrade(creep, controller) {
-    var result = creep.upgradeController(controller);
+function upgrade(creep) {
+    const controller = creep.room.controller;
+    if (controller === undefined) {
+        creep.say("no controller!");
+        return SteveState.transferring;
+    }
+    const result = creep.upgradeController(controller);
     if (result === ERR_NOT_IN_RANGE) {
         creep.moveTo(controller);
     }
@@ -50,8 +62,34 @@ function upgrade(creep, controller) {
     }
     return SteveState.upgrading;
 }
+function transfer(creep) {
+    const spawn = getClosestSpawn(creep);
+    if (spawn === null) {
+        creep.say("no spawn!");
+        creep.drop(RESOURCE_ENERGY);
+        return SteveState.upgrading;
+    }
+    const result = creep.transfer(spawn, RESOURCE_ENERGY);
+    if (result === ERR_NOT_IN_RANGE) {
+        creep.moveTo(spawn);
+    }
+    if (creep.store.getUsedCapacity() === 0) {
+        creep.say("harvesting");
+        return SteveState.upgrading;
+    }
+    return SteveState.transferring;
+}
 function getClosestSource(creep) {
-    return creep.room.find(FIND_SOURCES)[0];
+    const sources = creep.room.find(FIND_SOURCES);
+    return sources.length > 0
+        ? sources[0]
+        : null;
+}
+function getClosestSpawn(creep) {
+    const spawns = creep.room.find(FIND_MY_SPAWNS);
+    return spawns.length > 0
+        ? spawns[0]
+        : null;
 }
 
 var CreepRole;
@@ -61,13 +99,13 @@ var CreepRole;
 
 class CreepManager {
     static run() {
-        for (var name in Game.creeps) {
-            var creep = Game.creeps[name];
+        for (const name in Game.creeps) {
+            const creep = Game.creeps[name];
             CreepManager.runCreep(creep);
         }
     }
     static runCreep(creep) {
-        var creepRole = creep.memory.role;
+        const creepRole = creep.memory.role;
         switch (creepRole) {
             case CreepRole.steve:
                 Steve.run(creep);
@@ -81,13 +119,13 @@ class CreepManager {
 
 class SpawnManager {
     static run() {
-        for (var name in Game.spawns) {
-            var spawn = Game.spawns[name];
+        for (const name in Game.spawns) {
+            const spawn = Game.spawns[name];
             SpawnManager.runSpawn(spawn);
         }
     }
     static runSpawn(spawn) {
-        var result = spawn.spawnCreep([WORK, MOVE, CARRY], "Steve", {
+        const result = spawn.spawnCreep([WORK, MOVE, CARRY], "Steve", {
             dryRun: true
         });
         if (result === OK) {
@@ -114,49 +152,59 @@ function cleanMemory() {
 
 // Call this function at the end of your main loop
 function exportStats() {
-    var _a, _b, _c;
     // Reset stats object
     Memory.stats = {
-        gcl: {},
-        rooms: {},
-        cpu: {},
+        gcl: getGclStats(),
+        rooms: getRoomStats(),
+        cpu: getCpuStats(),
+        table: getTableStats(),
+        time: Game.time
     };
-    Memory.stats.time = Game.time;
-    // Collect room stats
-    for (let roomName in Game.rooms) {
-        let room = Game.rooms[roomName];
-        let isMyRoom = (room.controller ? room.controller.my : false);
+}
+function getRoomStats() {
+    var _a, _b, _c;
+    const roomStats = {};
+    for (const roomName in Game.rooms) {
+        const room = Game.rooms[roomName];
+        const isMyRoom = room.controller ? room.controller.my : false;
         if (isMyRoom) {
-            let roomStats = Memory.stats.rooms[roomName] = {};
-            roomStats.storageEnergy = (room.storage ? room.storage.store.energy : 0);
-            roomStats.terminalEnergy = (room.terminal ? room.terminal.store.energy : 0);
-            roomStats.energyAvailable = room.energyAvailable;
-            roomStats.energyCapacityAvailable = room.energyCapacityAvailable;
-            roomStats.controllerProgress = (_a = room.controller) === null || _a === void 0 ? void 0 : _a.progress;
-            roomStats.controllerProgressTotal = (_b = room.controller) === null || _b === void 0 ? void 0 : _b.progressTotal;
-            roomStats.controllerLevel = (_c = room.controller) === null || _c === void 0 ? void 0 : _c.level;
+            roomStats[roomName] = {
+                storageEnergy: room.storage ? room.storage.store.energy : 0,
+                terminalEnergy: room.terminal ? room.terminal.store.energy : 0,
+                energyAvailable: room.energyAvailable,
+                energyCapacityAvailable: room.energyCapacityAvailable,
+                controllerProgress: (_a = room.controller) === null || _a === void 0 ? void 0 : _a.progress,
+                controllerProgressTotal: (_b = room.controller) === null || _b === void 0 ? void 0 : _b.progressTotal,
+                controllerLevel: (_c = room.controller) === null || _c === void 0 ? void 0 : _c.level
+            };
         }
     }
-    // Collect GCL stats
-    Memory.stats.gcl.progress = Game.gcl.progress;
-    Memory.stats.gcl.progressTotal = Game.gcl.progressTotal;
-    Memory.stats.gcl.level = Game.gcl.level;
-    // Collect CPU stats
-    Memory.stats.cpu.bucket = Game.cpu.bucket;
-    Memory.stats.cpu.limit = Game.cpu.limit;
-    Memory.stats.cpu.used = Game.cpu.getUsed();
-    Memory.stats.table = getTableStats();
+    return roomStats;
+}
+function getGclStats() {
+    return {
+        progress: Game.gcl.progress,
+        progressTotal: Game.gcl.progressTotal,
+        level: Game.gcl.level
+    };
+}
+function getCpuStats() {
+    return {
+        bucket: Game.cpu.bucket,
+        limit: Game.cpu.limit,
+        used: Game.cpu.getUsed()
+    };
 }
 function getTableStats() {
-    var stats = {};
-    stats["game"] = {
-        "gameTime": "time",
-        "cpuBucket": "cpu.bucket",
-        "cpuLimit": "cpu.limit",
-        "cpuUsed": "cpu.used",
-        "gclProgress": "gcl.progress",
-        "gclProgressTotal": "gcl.progressTotal",
-        "gclLevel": "gcl.level",
+    const stats = {};
+    stats.game = {
+        gameTime: "time",
+        cpuBucket: "cpu.bucket",
+        cpuLimit: "cpu.limit",
+        cpuUsed: "cpu.used",
+        gclProgress: "gcl.progress",
+        gclProgressTotal: "gcl.progressTotal",
+        gclLevel: "gcl.level"
     };
     return stats;
 }
@@ -169,10 +217,10 @@ const gameLoop = () => {
     exportStats();
 };
 
-//import { ErrorMapper } from "utils/ErrorMapper";
+// import { ErrorMapper } from "utils/ErrorMapper";
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
-//export const loop = ErrorMapper.wrapLoop(gameLoop);
+// export const loop = ErrorMapper.wrapLoop(gameLoop);
 const loop = gameLoop;
 
 exports.loop = loop;
