@@ -1,5 +1,3 @@
-screeps.secrets.json
-
 # yarn lock file
 /yarn.lock
 
@@ -18,7 +16,7 @@ screeps.secrets.json
 /typings
 
 # Screeps Config
-screeps.json
+screeps.secrets.json
 
 # ScreepsServer data from integration tests
 /server
