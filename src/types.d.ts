@@ -8,7 +8,7 @@ interface CreepMemory {
 }
 
 interface SpawnMemory {
-  nextRole: string;
+  nextRole?: string;
 }
 
 interface RoomStats {

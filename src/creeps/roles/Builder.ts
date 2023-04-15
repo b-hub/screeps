@@ -5,14 +5,14 @@ type Memory = {
 };
 
 enum State {
+  building,
   harvesting,
-  transferring,
   null
 }
 
 export const spawnConfig = (): CreepSpawnConfig => {
   return {
-    name: "SpawnEnergiser" + Game.time.toString(),
+    name: "Builder" + Game.time.toString(),
     body: body,
     memory: {
       state: State.harvesting
@@ -41,8 +41,8 @@ export const run = (creep: Creep, memory: Memory) => {
     case State.harvesting:
       memory.state = harvest(creep);
       break;
-    case State.transferring:
-      memory.state = transfer(creep);
+    case State.building:
+      memory.state = build(creep);
       break;
     case State.null:
       // do nothing
@@ -53,8 +53,6 @@ export const run = (creep: Creep, memory: Memory) => {
 const harvest = (creep: Creep): State => {
   const source = findSource(creep);
   if (source === null) {
-    creep.say("😢No purpose");
-    creep.suicide();
     return State.null;
   }
 
@@ -65,23 +63,23 @@ const harvest = (creep: Creep): State => {
 
   if (creep.store.getFreeCapacity() === 0) {
     creep.say("🚀");
-    return State.transferring;
+    return State.building;
   }
 
   return State.harvesting;
 }
 
-const transfer = (creep: Creep): State => {
-  const spawn = findSpawn(creep);
-  if (spawn === null) {
-    creep.say("😢No purpose");
-    creep.suicide();
+const build = (creep: Creep): State => {
+  const sites = creep.room.find(FIND_CONSTRUCTION_SITES);
+  if (sites.length === 0) {
     return State.null;
   }
-  const result = creep.transfer(spawn, RESOURCE_ENERGY);
+
+  const site = sites[0];
+  const result = creep.build(site)
 
   if (result === ERR_NOT_IN_RANGE) {
-    creep.moveTo(spawn);
+    creep.moveTo(site);
   }
 
   if (creep.store.getUsedCapacity() === 0) {
@@ -89,19 +87,12 @@ const transfer = (creep: Creep): State => {
     return State.harvesting;
   }
 
-  return State.transferring;
+  return State.building;
 }
 
 const findSource = (creep: Creep): Source | null => {
   const sources = creep.room.find(FIND_SOURCES);
   return sources.length > 0
     ? sources[0]
-    : null;
-}
-
-const findSpawn = (creep: Creep): StructureSpawn | null => {
-  const spawns = creep.room.find(FIND_MY_SPAWNS);
-  return spawns.length > 0
-    ? spawns[0]
     : null;
 }

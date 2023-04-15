@@ -1,5 +1,5 @@
 import { Roles, isRole } from "../creeps/roles";
-import * as WitnessSteve from "creeps/roles/witnessSteve";
+import * as Witness from "creeps/tempRoles/Witness";
 import { isAlive, isSpawning, creepAge } from "../creeps/utils";
 
 export const run = () => {
@@ -28,6 +28,6 @@ const runCreep = (creep: Creep) => {
 
 const witnessTheBirthOfSteve = (creep: Creep) => {
   creep.memory.tmp = creep.memory.tmp ?? {};
-  return WitnessSteve.run(creep, creep.memory.tmp);
+  return Witness.run(creep, creep.memory.tmp);
 }
 

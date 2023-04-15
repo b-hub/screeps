@@ -17,29 +17,29 @@ const runSpawn = (spawn: StructureSpawn) => {
   }
 
   const role = spawn.memory.nextRole;
-  if (isRole(role)) {
-    spawnCreep(spawn, Roles[role].spawnConfig(), role);
+  if (role && isRole(role) && spawnCreep(spawn, Roles[role].spawnConfig(), role)) {
+    spawn.memory.nextRole = undefined;
   }
 }
 
-const spawnCreep = (spawn: StructureSpawn, config: CreepSpawnConfig, role: string) => {
+const spawnCreep = (spawn: StructureSpawn, config: CreepSpawnConfig, role: string): boolean => {
   if (spawn.room.energyAvailable !== spawn.room.energyCapacityAvailable) {
-    return;
+    return false;
   }
 
   const name = config.name;
   const body = maxBody(config.body(), spawn.room.energyAvailable);
   if (!body) {
     console.log("Failed to spawn with available energy: ", spawn.room.energyAvailable);
-    return;
+    return false;
   }
 
-  const result = spawn.spawnCreep(body, name, {
+  let result = spawn.spawnCreep(body, name, {
     dryRun: true
   });
 
   if (result === OK) {
-    spawn.spawnCreep(body, name, {
+    result = spawn.spawnCreep(body, name, {
       dryRun: false,
       memory: {
         role: role,
@@ -49,6 +49,8 @@ const spawnCreep = (spawn: StructureSpawn, config: CreepSpawnConfig, role: strin
   } else if (result === ERR_NOT_ENOUGH_ENERGY) {
     console.log("Not enough energy for body", body);
   }
+
+  return result === OK;
 }
 
 const maxBody = (bodyGenerator: CreepBodyGenerator, energy: number): BodyPartConstant[] | undefined  => {
