@@ -6,6 +6,10 @@ interface CreepMemory {
   current: any;
 }
 
+interface SpawnMemory {
+  nextRole: string;
+}
+
 interface RoomStats {
   storageEnergy: number;
   terminalEnergy: number;

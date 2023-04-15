@@ -1,29 +1,25 @@
-import { BodyGenerator, SpawnConfig } from "./utils";
-import * as Upgrader from "./Upgrader";
-import * as SpawnEnergiser from "./SpawnEnergiser";
+import { CreepBodyGenerator, CreepSpawnConfig } from "./roles/utils";
+import { Roles, Role } from "./roles";
 
-type SteveMemory = {
-  role: SteveRole;
+type Memory = {
+  role: Role;
   current: any;
 };
 
-enum SteveRole {
-  upgrader,
-  spawnEnergiser,
-}
+export const spawnConfig = (): CreepSpawnConfig => {
+  const memory: Memory = {
+    role: "SpawnSupplier", // get other creeps spawning faster
+    current: {}
+  };
 
-export const spawnConfig = (): SpawnConfig => {
   return {
     name: "Steve", // there can only be one
     body: body,
-    memory: {
-      role: SteveRole.spawnEnergiser, // get other creeps spawning faster
-      current: {}
-    }
+    memory: memory
   }
 }
 
-function* body(): BodyGenerator {
+function* body(): CreepBodyGenerator {
   let currentBody: BodyPartConstant[] = [WORK, CARRY, MOVE];
   yield currentBody; // minimum
 
@@ -38,18 +34,12 @@ function* body(): BodyGenerator {
   }
 }
 
-export const run = (creep: Creep, memory: SteveMemory) => {
-  const creepRole = memory.role;
-
-  switch (creepRole) {
-    case SteveRole.spawnEnergiser:
-      SpawnEnergiser.run(creep, creep.memory.current);
-      break;
-    case SteveRole.upgrader:
-      Upgrader.run(creep, creep.memory.current);
-      break;
-    default:
-      console.log(`unknown creep role '${creepRole}'`);
-      break;
+export const run = () => {
+  const creep = Game.creeps.Steve;
+  if (!creep) {
+    return;
   }
+
+  const memory = creep.memory.current as Memory;
+  Roles[memory.role].run(creep, memory.current);
 };

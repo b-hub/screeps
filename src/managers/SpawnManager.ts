@@ -1,7 +1,6 @@
-import { CreepRole } from "./CreepManager";
 import * as Steve from "creeps/Steve";
-import * as Upgrader from "creeps/Upgrader";
-import {SpawnConfig, BodyGenerator} from "creeps/utils";
+import {CreepSpawnConfig, CreepBodyGenerator} from "creeps/roles/utils";
+import { isRole, Roles, Role } from "creeps/roles";
 
 export const run = () => {
   for (const name in Game.spawns) {
@@ -11,18 +10,20 @@ export const run = () => {
 };
 
 const runSpawn = (spawn: StructureSpawn) => {
-  const steveConfig = Steve.spawnConfig();
-  if (!Game.creeps[steveConfig.name]) {
-    console.log("No steve, spawning...")
-    spawnCreep(spawn, steveConfig, CreepRole.steve);
+  const steve = Game.creeps.Steve;
+  if (!steve) {
+    spawnCreep(spawn, Steve.spawnConfig(), "");
     return;
   }
 
-  spawnCreep(spawn, Upgrader.spawnConfig(), CreepRole.upgrader);
-
+  const role = spawn.memory.nextRole;
+  if (isRole(role)) {
+    console.log(role, "is next role");
+    spawnCreep(spawn, Roles[role].spawnConfig(), role);
+  }
 }
 
-const spawnCreep = (spawn: StructureSpawn, config: SpawnConfig, role: CreepRole) => {
+const spawnCreep = (spawn: StructureSpawn, config: CreepSpawnConfig, role: string) => {
   if (spawn.room.energyAvailable !== spawn.room.energyCapacityAvailable) {
     return;
   }
@@ -51,7 +52,7 @@ const spawnCreep = (spawn: StructureSpawn, config: SpawnConfig, role: CreepRole)
   }
 }
 
-const maxBody = (bodyGenerator: BodyGenerator, energy: number): BodyPartConstant[] | undefined  => {
+const maxBody = (bodyGenerator: CreepBodyGenerator, energy: number): BodyPartConstant[] | undefined  => {
   let result;
 
   for (const body of bodyGenerator) {

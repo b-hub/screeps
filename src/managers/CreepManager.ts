@@ -1,10 +1,4 @@
-import * as Steve from "creeps/Steve";
-import * as Upgrader from "creeps/Upgrader";
-
-export enum CreepRole {
-  steve = "steve",
-  upgrader = "upgrader"
-}
+import { Roles, isRole } from "../creeps/roles";
 
 export const run = () => {
   for (const name in Game.creeps) {
@@ -13,18 +7,12 @@ export const run = () => {
   }
 }
 
-const runCreep = (creep: Creep) => {
-  const creepRole = creep.memory.role;
 
-  switch (creepRole) {
-    case CreepRole.steve:
-      Steve.run(creep, creep.memory.current);
-      break;
-    case CreepRole.upgrader:
-      Upgrader.run(creep, creep.memory.current);
-      break;
-    default:
-      console.log(`unknown creep role '${creepRole}'`);
-      break;
+const runCreep = (creep: Creep) => {
+  const role = creep.memory.role;
+  if (isRole(role)) {
+    console.log(role, "is role");
+    return Roles[role].run(creep, creep.memory.current);
   }
-}
+};
+
