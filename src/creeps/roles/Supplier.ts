@@ -1,13 +1,15 @@
 import { CreepBodyGenerator, CreepSpawnConfig } from "./utils";
+import * as HeavyMiner from "./HeavyMiner";
 
 type Memory = {
   state: State;
 };
 
 enum State {
-  harvesting,
-  transferring,
-  null
+  withdraw = "withdraw",
+  harvesting = "harvesting",
+  transferring = "transferring",
+  null = "null"
 }
 
 export const spawnConfig = (): CreepSpawnConfig => {
@@ -15,7 +17,7 @@ export const spawnConfig = (): CreepSpawnConfig => {
     name: "Supplier" + Game.time.toString(),
     body: body,
     memory: {
-      state: State.harvesting
+      state: State.withdraw
     }
   }
 }
@@ -38,6 +40,9 @@ function* body(): CreepBodyGenerator {
 export const run = (creep: Creep, memory: Memory) => {
   switch (memory.state) {
     default:
+    case State.withdraw:
+      memory.state = withdraw(creep);
+      break;
     case State.harvesting:
       memory.state = harvest(creep);
       break;
@@ -50,11 +55,29 @@ export const run = (creep: Creep, memory: Memory) => {
   }
 };
 
+const withdraw = (creep: Creep): State => {
+  const container = creep.room.find(FIND_STRUCTURES).find(s => s.structureType === "container");
+  if (!container) {
+    return State.harvesting;
+  }
+
+  const result = creep.withdraw(container, "energy");
+  if (result === ERR_NOT_IN_RANGE) {
+    creep.moveTo(container);
+  }
+
+  if (creep.store.getFreeCapacity() === 0) {
+    creep.say("🚀");
+    return State.transferring;
+  }
+
+  return State.withdraw;
+}
+
 const harvest = (creep: Creep): State => {
-  const source = findSource(creep);
-  if (source === null) {
-    creep.say("😢No purpose");
-    creep.suicide();
+  const loc = HeavyMiner.availableMiningLocation(creep.room);
+  const source = loc ? creep.room.lookForAt(LOOK_SOURCES, loc.sourcePos.x, loc.sourcePos.y)[0] : null;
+  if (!source) {
     return State.null;
   }
 
@@ -72,10 +95,8 @@ const harvest = (creep: Creep): State => {
 }
 
 const transfer = (creep: Creep): State => {
-  const spawn = findSpawn(creep);
+  const spawn = creep.room.find(FIND_MY_SPAWNS)[0];
   if (spawn === null) {
-    creep.say("😢No purpose");
-    creep.suicide();
     return State.null;
   }
   const result = creep.transfer(spawn, RESOURCE_ENERGY);
@@ -86,22 +107,8 @@ const transfer = (creep: Creep): State => {
 
   if (creep.store.getUsedCapacity() === 0) {
     creep.say("⛏️");
-    return State.harvesting;
+    return State.withdraw;
   }
 
   return State.transferring;
-}
-
-const findSource = (creep: Creep): Source | null => {
-  const sources = creep.room.find(FIND_SOURCES);
-  return sources.length > 0
-    ? sources[0]
-    : null;
-}
-
-const findSpawn = (creep: Creep): StructureSpawn | null => {
-  const spawns = creep.room.find(FIND_MY_SPAWNS);
-  return spawns.length > 0
-    ? spawns[0]
-    : null;
 }

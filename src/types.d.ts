@@ -11,6 +11,22 @@ interface SpawnMemory {
   nextRole?: string;
 }
 
+interface RoomMemory {
+  mineLocations?: MineLocation[];
+}
+
+interface MineLocation {
+  sourcePos: Pos;
+  containerPos: Pos;
+  minePos: Pos;
+  creepName?: string;
+}
+
+interface Pos {
+  x: number;
+  y: number;
+}
+
 interface RoomStats {
   storageEnergy: number;
   terminalEnergy: number;

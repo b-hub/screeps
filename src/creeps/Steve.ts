@@ -1,6 +1,6 @@
 import { CreepBodyGenerator, CreepSpawnConfig } from "./roles/utils";
 import { Roles, Role } from "./roles";
-import { Position } from "source-map";
+import * as HeavyMiner from "./roles/HeavyMiner";
 
 type Memory = {
   role: Role;
@@ -54,35 +54,29 @@ export const run = () => {
 
 const setNextRoleToSpawn = (creep: Creep): Role | null => {
   const spawn = findSpawn(creep);
+  let role = null;
   if (!spawn || spawn.memory.nextRole) {
-    return null;
+    return role;
   }
 
   const creeps = creep.room.find(FIND_MY_CREEPS);
   const spawnSupplierRole: Role = "SpawnSupplier";
-  if (creeps.filter(c => c.memory.role === spawnSupplierRole).length < 2) {
+  if (creeps.filter(c => c.memory.role === spawnSupplierRole).length < 1) {
     spawn.memory.nextRole = spawnSupplierRole;
     return spawnSupplierRole;
   }
 
   const minerRole: Role = "HeavyMiner";
-  const containerPos = getContainerPosition(creep.room);
-  if (containerPos && containerPos.lookFor(LOOK_CONSTRUCTION_SITES).length === 0 && containerPos.lookFor(LOOK_STRUCTURES).length === 0) {
-    console.log("Created container construction site");
-    creep.say("🚧");
-    creep.room.createConstructionSite(containerPos, STRUCTURE_CONTAINER);
-    return minerRole;
+  const availableLocs = HeavyMiner.availableMiningLocations(creep.room).length;
+  if (availableLocs > 0) {
+    spawn.memory.nextRole = minerRole;
+    return role;
   }
 
-  if (creep.room.find(FIND_CONSTRUCTION_SITES).length > 0) {
-    if (creeps.filter(c => c.memory.role === minerRole).length < 1) {
-      spawn.memory.nextRole = minerRole;
-    }
+  const upgraderRole: Role = "Upgrader";
+  spawn.memory.nextRole = upgraderRole;
 
-    return minerRole;
-  }
-
-  return null;
+  return upgraderRole;
 }
 
 const findSpawn = (creep: Creep): StructureSpawn | null => {
@@ -92,10 +86,6 @@ const findSpawn = (creep: Creep): StructureSpawn | null => {
     : null;
 }
 
-const hasBuiltContainer = (room: Room): boolean => {
-  const containers = room.find(FIND_MY_CONSTRUCTION_SITES).filter(c => c.structureType === STRUCTURE_CONTAINER);
-  return containers.length > 0;
-}
 const getContainerPosition = (room: Room): RoomPosition | null => {
   const spawn = room.find(FIND_MY_SPAWNS)[0];
   const source = spawn.pos.findClosestByPath(FIND_SOURCES);

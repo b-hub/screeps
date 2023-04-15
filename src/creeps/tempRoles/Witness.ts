@@ -46,7 +46,7 @@ const travel = (creep: Creep): State => {
 };
 
 const wait = (creep: Creep) => {
-  const thought = think(idleThoughts, 0.3);
+  const thought = think(idleThoughts, 0.1);
   if (thought) {
     creep.say(thought);
   }
@@ -64,7 +64,7 @@ const celebrate = (creep: Creep) => {
 }
 
 const think = (thoughts: string[], chanceToHaveThought: number): string | null => {
-  if (Math.random() < chanceToHaveThought) {
+  if (Math.random() > chanceToHaveThought) {
     return null;
   }
 

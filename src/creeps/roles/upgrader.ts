@@ -1,13 +1,15 @@
 import { CreepBodyGenerator, CreepSpawnConfig } from "./utils";
+import * as HeavyMiner from "./HeavyMiner";
 
 type Memory = {
   state: State;
 };
 
 enum State {
-  harvesting,
-  upgrading,
-  null
+  withdraw = "withdraw",
+  harvesting = "harvesting",
+  transferring = "transferring",
+  null = "null"
 }
 
 export const spawnConfig = (): CreepSpawnConfig => {
@@ -15,7 +17,7 @@ export const spawnConfig = (): CreepSpawnConfig => {
     name: "Upgrader" + Game.time.toString(),
     body: body,
     memory: {
-      state: State.harvesting
+      state: State.withdraw
     }
   }
 }
@@ -38,11 +40,14 @@ function* body(): CreepBodyGenerator {
 export const run = (creep: Creep, memory: Memory) => {
   switch (memory.state) {
     default:
+    case State.withdraw:
+      memory.state = withdraw(creep);
+      break;
     case State.harvesting:
       memory.state = harvest(creep);
       break;
-    case State.upgrading:
-      memory.state = upgrade(creep);
+    case State.transferring:
+      memory.state = transfer(creep);
       break;
     case State.null:
       // do nothing
@@ -50,10 +55,29 @@ export const run = (creep: Creep, memory: Memory) => {
   }
 };
 
+const withdraw = (creep: Creep): State => {
+  const container = creep.room.find(FIND_STRUCTURES).find(s => s.structureType === "container");
+  if (!container) {
+    return State.harvesting;
+  }
+
+  const result = creep.withdraw(container, "energy");
+  if (result === ERR_NOT_IN_RANGE) {
+    creep.moveTo(container);
+  }
+
+  if (creep.store.getFreeCapacity() === 0) {
+    creep.say("🚀");
+    return State.transferring;
+  }
+
+  return State.withdraw;
+}
+
 const harvest = (creep: Creep): State => {
-  const source = findSource(creep);
-  if (source === null) {
-    creep.say("No source!");
+  const loc = HeavyMiner.availableMiningLocation(creep.room);
+  const source = loc ? creep.room.lookForAt(LOOK_SOURCES, loc.sourcePos.x, loc.sourcePos.y)[0] : null;
+  if (!source) {
     return State.null;
   }
 
@@ -64,19 +88,19 @@ const harvest = (creep: Creep): State => {
 
   if (creep.store.getFreeCapacity() === 0) {
     creep.say("🚀");
-    return State.upgrading;
+    return State.transferring;
   }
 
   return State.harvesting;
 }
 
-const upgrade = (creep: Creep): State => {
+const transfer = (creep: Creep): State => {
   const controller = creep.room.controller;
   if (controller === undefined) {
     creep.say("no controller!");
     return State.null;
   }
-  const result = creep.upgradeController(controller);
+  const result = creep.transfer(controller, RESOURCE_ENERGY);
 
   if (result === ERR_NOT_IN_RANGE) {
     creep.moveTo(controller);
@@ -84,15 +108,8 @@ const upgrade = (creep: Creep): State => {
 
   if (creep.store.getUsedCapacity() === 0) {
     creep.say("⛏️");
-    return State.harvesting;
+    return State.withdraw;
   }
 
-  return State.upgrading;
-}
-
-const findSource = (creep: Creep): Source | null => {
-  const sources = creep.room.find(FIND_SOURCES);
-  return sources.length > 0
-    ? sources[0]
-    : null;
+  return State.transferring;
 }
