@@ -1,8 +1,8 @@
-import { BodyGenerator, SpawnConfig } from "./utils";
+import { BodyGenerator, SpawnConfig, currentMemory } from "./utils";
 
 type SteveMemory = {
   state: SteveState;
-} & CreepMemory
+};
 
 enum SteveState {
   harvesting,
@@ -13,7 +13,7 @@ enum SteveState {
 
 export const spawnConfig = (): SpawnConfig => {
   return {
-    name: "Steve",
+    name: "Steve", // there can only be one
     body: body,
     memory: {
       state: SteveState.harvesting
@@ -26,6 +26,7 @@ function* body(): BodyGenerator {
   yield currentBody; // minimum
 
   while (true) {
+    // ensures that we always have enough movement for [WORK,CARRY]
     currentBody = currentBody.concat([MOVE]);
     yield currentBody;
     currentBody = currentBody.concat([WORK]);
@@ -36,7 +37,7 @@ function* body(): BodyGenerator {
 }
 
 export const run = (creep: Creep) => {
-  const memory = creep.memory as SteveMemory;
+  const memory = currentMemory<SteveMemory>(creep);
 
   switch (memory.state) {
     default:

@@ -1,4 +1,4 @@
-import { CreepRole } from "enums/CreepRole";
+import { CreepRole } from "./CreepManager";
 import * as Steve from "creeps/Steve";
 import {SpawnConfig, BodyGenerator} from "creeps/utils";
 

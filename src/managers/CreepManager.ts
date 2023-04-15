@@ -1,5 +1,8 @@
 import * as Steve from "creeps/Steve";
-import { CreepRole } from "enums/CreepRole";
+
+export enum CreepRole {
+  steve = "steve"
+}
 
 export const run = () => {
   for (const name in Game.creeps) {
