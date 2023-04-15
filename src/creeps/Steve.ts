@@ -1,3 +1,5 @@
+import { BodyGenerator, SpawnConfig } from "./utils";
+
 type SteveMemory = {
   state: SteveState;
 } & CreepMemory
@@ -9,11 +11,29 @@ enum SteveState {
   null
 }
 
-export const body = () => [WORK, MOVE, CARRY];
-export const memory = (base: CreepMemory): SteveMemory => ({
-  ...base,
-  state: SteveState.harvesting
-});
+export const spawnConfig = (): SpawnConfig => {
+  return {
+    name: "Steve",
+    body: body,
+    memory: {
+      state: SteveState.harvesting
+    }
+  }
+}
+
+function* body(): BodyGenerator {
+  let currentBody: BodyPartConstant[] = [WORK, CARRY, MOVE];
+  yield currentBody; // minimum
+
+  while (true) {
+    currentBody = currentBody.concat([MOVE]);
+    yield currentBody;
+    currentBody = currentBody.concat([WORK]);
+    yield currentBody;
+    currentBody = currentBody.concat([CARRY]);
+    yield currentBody;
+  }
+}
 
 export const run = (creep: Creep) => {
   const memory = creep.memory as SteveMemory;

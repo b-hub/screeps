@@ -9,8 +9,27 @@ var SteveState;
     SteveState[SteveState["transferring"] = 2] = "transferring";
     SteveState[SteveState["null"] = 3] = "null";
 })(SteveState || (SteveState = {}));
-const body = () => [WORK, MOVE, CARRY];
-const memory = (base) => (Object.assign(Object.assign({}, base), { state: SteveState.harvesting }));
+const spawnConfig = () => {
+    return {
+        name: "Steve",
+        body: body,
+        memory: {
+            state: SteveState.harvesting
+        }
+    };
+};
+function* body() {
+    let currentBody = [WORK, CARRY, MOVE];
+    yield currentBody; // minimum
+    while (true) {
+        currentBody = currentBody.concat([MOVE]);
+        yield currentBody;
+        currentBody = currentBody.concat([WORK]);
+        yield currentBody;
+        currentBody = currentBody.concat([CARRY]);
+        yield currentBody;
+    }
+}
 const run$2 = (creep) => {
     const memory = creep.memory;
     switch (memory.state) {
@@ -122,17 +141,49 @@ const run = () => {
     }
 };
 const runSpawn = (spawn) => {
-    const result = spawn.spawnCreep(body(), "Steve", {
+    const steveConfig = spawnConfig();
+    if (!Game.creeps[steveConfig.name]) {
+        console.log("No steve, spawning...");
+        spawnCreep(spawn, steveConfig);
+    }
+};
+const spawnCreep = (spawn, config) => {
+    const name = config.name;
+    const body = maxBody(config.body(), spawn.room.energyAvailable);
+    if (!body) {
+        console.log("Failed to spawn with available energy: ", spawn.room.energyAvailable);
+        return;
+    }
+    const result = spawn.spawnCreep(body, name, {
         dryRun: true
     });
     if (result === OK) {
-        spawn.spawnCreep(body(), "Steve", {
+        spawn.spawnCreep(body, name, {
             dryRun: false,
-            memory: memory({
-                role: CreepRole.steve
-            })
+            memory: {
+                role: CreepRole.steve,
+                current: config.memory
+            }
         });
     }
+    else if (result === ERR_NOT_ENOUGH_ENERGY) {
+        console.log("Not enough energy for body", body);
+    }
+};
+const maxBody = (bodyGenerator, energy) => {
+    let result;
+    for (const body of bodyGenerator) {
+        if (bodyCost(body) > energy) {
+            return result;
+        }
+        result = body;
+    }
+    return result;
+};
+const bodyCost = (body) => {
+    return body.reduce((cost, part) => {
+        return cost + BODYPART_COST[part];
+    }, 0);
 };
 
 function cleanMemory() {
