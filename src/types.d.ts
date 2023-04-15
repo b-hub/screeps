@@ -4,6 +4,7 @@
 interface CreepMemory {
   role: string;
   current: any;
+  tmp?: any;
 }
 
 interface SpawnMemory {

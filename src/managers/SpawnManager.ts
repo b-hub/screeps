@@ -1,6 +1,7 @@
 import * as Steve from "creeps/Steve";
 import {CreepSpawnConfig, CreepBodyGenerator} from "creeps/roles/utils";
 import { isRole, Roles, Role } from "creeps/roles";
+import { isAlive } from "../creeps/utils";
 
 export const run = () => {
   for (const name in Game.spawns) {
@@ -10,15 +11,13 @@ export const run = () => {
 };
 
 const runSpawn = (spawn: StructureSpawn) => {
-  const steve = Game.creeps.Steve;
-  if (!steve) {
+  if (!isAlive(Game.creeps.Steve)) {
     spawnCreep(spawn, Steve.spawnConfig(), "");
     return;
   }
 
   const role = spawn.memory.nextRole;
   if (isRole(role)) {
-    console.log(role, "is next role");
     spawnCreep(spawn, Roles[role].spawnConfig(), role);
   }
 }

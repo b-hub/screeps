@@ -40,6 +40,19 @@ export const run = () => {
     return;
   }
 
+  const nextRole: Role = "SpawnSupplier";
+  const spawn = findSpawn(creep);
+  if (spawn) {
+    spawn.memory.nextRole = nextRole;
+  }
+
   const memory = creep.memory.current as Memory;
   Roles[memory.role].run(creep, memory.current);
 };
+
+const findSpawn = (creep: Creep): StructureSpawn | null => {
+  const spawns = creep.room.find(FIND_MY_SPAWNS);
+  return spawns.length > 0
+    ? spawns[0]
+    : null;
+}
