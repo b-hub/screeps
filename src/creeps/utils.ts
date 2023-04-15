@@ -6,7 +6,7 @@ export type SpawnConfig = {
   memory: any;
 }
 
-export const memory = <T,>(creep: Creep): T => {
+export const currentMemory = <T,>(creep: Creep): T => {
   const memory = creep.memory as CreepMemory;
   return memory.current;
 }
