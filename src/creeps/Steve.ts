@@ -1,40 +1,44 @@
-interface SteveMemory extends CreepMemory {
+type SteveMemory = {
   state: SteveState;
-}
+} & CreepMemory
 
-export enum SteveState {
+enum SteveState {
   harvesting,
   upgrading,
   transferring,
-  null,
+  null
 }
 
-export class Steve {
-  public static run(creep: Creep) {
-    const memory = creep.memory as SteveMemory;
+export const body = () => [WORK, MOVE, CARRY];
+export const memory = (base: CreepMemory): SteveMemory => ({
+  ...base,
+  state: SteveState.harvesting
+});
 
-    switch (memory.state) {
-      default:
-      case SteveState.harvesting:
-        memory.state = harvest(creep);
-        break;
-      case SteveState.upgrading:
-        memory.state = upgrade(creep);
-        break;
-      case SteveState.transferring:
-        memory.state = transfer(creep);
-        break;
-      case SteveState.null:
-        // do nothing
-        break;
-    }
+export const run = (creep: Creep) => {
+  const memory = creep.memory as SteveMemory;
+
+  switch (memory.state) {
+    default:
+    case SteveState.harvesting:
+      memory.state = harvest(creep);
+      break;
+    case SteveState.upgrading:
+      memory.state = upgrade(creep);
+      break;
+    case SteveState.transferring:
+      memory.state = transfer(creep);
+      break;
+    case SteveState.null:
+      // do nothing
+      break;
   }
-}
+};
 
-function harvest(creep: Creep): SteveState {
+const harvest = (creep: Creep): SteveState => {
   const source = getClosestSource(creep);
   if (source === null) {
-    creep.say("Steve has no purpose");
+    creep.say("😢Steve has no purpose");
     creep.suicide();
     return SteveState.null;
   }
@@ -45,14 +49,14 @@ function harvest(creep: Creep): SteveState {
   }
 
   if (creep.store.getFreeCapacity() === 0) {
-    creep.say("upgrading");
+    creep.say("🚀");
     return SteveState.upgrading;
   }
 
   return SteveState.harvesting;
 }
 
-function upgrade(creep: Creep): SteveState {
+const upgrade = (creep: Creep): SteveState => {
   const controller = creep.room.controller;
   if (controller === undefined) {
     creep.say("no controller!");
@@ -65,14 +69,14 @@ function upgrade(creep: Creep): SteveState {
   }
 
   if (creep.store.getUsedCapacity() === 0) {
-    creep.say("harvesting");
+    creep.say("⛏️");
     return SteveState.harvesting;
   }
 
   return SteveState.upgrading;
 }
 
-function transfer(creep: Creep): SteveState {
+const transfer = (creep: Creep): SteveState => {
   const spawn = getClosestSpawn(creep);
   if (spawn === null) {
     creep.say("no spawn!");
@@ -86,21 +90,21 @@ function transfer(creep: Creep): SteveState {
   }
 
   if (creep.store.getUsedCapacity() === 0) {
-    creep.say("harvesting");
+    creep.say("⛏️");
     return SteveState.upgrading;
   }
 
   return SteveState.transferring;
 }
 
-function getClosestSource(creep: Creep): Source | null {
+const getClosestSource = (creep: Creep): Source | null => {
   const sources = creep.room.find(FIND_SOURCES);
   return sources.length > 0
     ? sources[0]
     : null;
 }
 
-function getClosestSpawn(creep: Creep): StructureSpawn | null {
+const getClosestSpawn = (creep: Creep): StructureSpawn | null => {
   const spawns = creep.room.find(FIND_MY_SPAWNS);
   return spawns.length > 0
     ? spawns[0]

@@ -9,30 +9,30 @@ var SteveState;
     SteveState[SteveState["transferring"] = 2] = "transferring";
     SteveState[SteveState["null"] = 3] = "null";
 })(SteveState || (SteveState = {}));
-class Steve {
-    static run(creep) {
-        const memory = creep.memory;
-        switch (memory.state) {
-            default:
-            case SteveState.harvesting:
-                memory.state = harvest(creep);
-                break;
-            case SteveState.upgrading:
-                memory.state = upgrade(creep);
-                break;
-            case SteveState.transferring:
-                memory.state = transfer(creep);
-                break;
-            case SteveState.null:
-                // do nothing
-                break;
-        }
+const body = () => [WORK, MOVE, CARRY];
+const memory = (base) => (Object.assign(Object.assign({}, base), { state: SteveState.harvesting }));
+const run$2 = (creep) => {
+    const memory = creep.memory;
+    switch (memory.state) {
+        default:
+        case SteveState.harvesting:
+            memory.state = harvest(creep);
+            break;
+        case SteveState.upgrading:
+            memory.state = upgrade(creep);
+            break;
+        case SteveState.transferring:
+            memory.state = transfer(creep);
+            break;
+        case SteveState.null:
+            // do nothing
+            break;
     }
-}
-function harvest(creep) {
+};
+const harvest = (creep) => {
     const source = getClosestSource(creep);
     if (source === null) {
-        creep.say("Steve has no purpose");
+        creep.say("😢Steve has no purpose");
         creep.suicide();
         return SteveState.null;
     }
@@ -41,12 +41,12 @@ function harvest(creep) {
         creep.moveTo(source);
     }
     if (creep.store.getFreeCapacity() === 0) {
-        creep.say("upgrading");
+        creep.say("🚀");
         return SteveState.upgrading;
     }
     return SteveState.harvesting;
-}
-function upgrade(creep) {
+};
+const upgrade = (creep) => {
     const controller = creep.room.controller;
     if (controller === undefined) {
         creep.say("no controller!");
@@ -57,12 +57,12 @@ function upgrade(creep) {
         creep.moveTo(controller);
     }
     if (creep.store.getUsedCapacity() === 0) {
-        creep.say("harvesting");
+        creep.say("⛏️");
         return SteveState.harvesting;
     }
     return SteveState.upgrading;
-}
-function transfer(creep) {
+};
+const transfer = (creep) => {
     const spawn = getClosestSpawn(creep);
     if (spawn === null) {
         creep.say("no spawn!");
@@ -74,72 +74,66 @@ function transfer(creep) {
         creep.moveTo(spawn);
     }
     if (creep.store.getUsedCapacity() === 0) {
-        creep.say("harvesting");
+        creep.say("⛏️");
         return SteveState.upgrading;
     }
     return SteveState.transferring;
-}
-function getClosestSource(creep) {
+};
+const getClosestSource = (creep) => {
     const sources = creep.room.find(FIND_SOURCES);
     return sources.length > 0
         ? sources[0]
         : null;
-}
-function getClosestSpawn(creep) {
+};
+const getClosestSpawn = (creep) => {
     const spawns = creep.room.find(FIND_MY_SPAWNS);
     return spawns.length > 0
         ? spawns[0]
         : null;
-}
+};
 
 var CreepRole;
 (function (CreepRole) {
-    CreepRole[CreepRole["steve"] = 1] = "steve";
+    CreepRole["steve"] = "steve";
 })(CreepRole || (CreepRole = {}));
 
-class CreepManager {
-    static run() {
-        for (const name in Game.creeps) {
-            const creep = Game.creeps[name];
-            CreepManager.runCreep(creep);
-        }
+const run$1 = () => {
+    for (const name in Game.creeps) {
+        const creep = Game.creeps[name];
+        runCreep(creep);
     }
-    static runCreep(creep) {
-        const creepRole = creep.memory.role;
-        switch (creepRole) {
-            case CreepRole.steve:
-                Steve.run(creep);
-                break;
-            default:
-                console.log(`unknown creep role '${creepRole}'`);
-                break;
-        }
+};
+const runCreep = (creep) => {
+    const creepRole = creep.memory.role;
+    switch (creepRole) {
+        case CreepRole.steve:
+            run$2(creep);
+            break;
+        default:
+            console.log(`unknown creep role '${creepRole}'`);
+            break;
     }
-}
+};
 
-class SpawnManager {
-    static run() {
-        for (const name in Game.spawns) {
-            const spawn = Game.spawns[name];
-            SpawnManager.runSpawn(spawn);
-        }
+const run = () => {
+    for (const name in Game.spawns) {
+        const spawn = Game.spawns[name];
+        runSpawn(spawn);
     }
-    static runSpawn(spawn) {
-        const result = spawn.spawnCreep([WORK, MOVE, CARRY], "Steve", {
-            dryRun: true
+};
+const runSpawn = (spawn) => {
+    const result = spawn.spawnCreep(body(), "Steve", {
+        dryRun: true
+    });
+    if (result === OK) {
+        spawn.spawnCreep(body(), "Steve", {
+            dryRun: false,
+            memory: memory({
+                role: CreepRole.steve
+            })
         });
-        if (result === OK) {
-            spawn.spawnCreep([WORK, MOVE, CARRY], "Steve", {
-                dryRun: false,
-                memory: {
-                    role: CreepRole.steve,
-                    room: "",
-                    working: false
-                }
-            });
-        }
     }
-}
+};
 
 function cleanMemory() {
     // Automatically delete memory of missing creeps!!!!!!!!
@@ -210,10 +204,9 @@ function getTableStats() {
 }
 
 const gameLoop = () => {
-    console.log(`Current game tick is ${Game.time}`);
     cleanMemory();
-    SpawnManager.run();
-    CreepManager.run();
+    run();
+    run$1();
     exportStats();
 };
 

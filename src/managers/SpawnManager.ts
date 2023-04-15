@@ -1,27 +1,24 @@
 import { CreepRole } from "enums/CreepRole";
+import * as Steve from "creeps/Steve";
 
-export class SpawnManager {
-  public static run() {
-    for (const name in Game.spawns) {
-      const spawn = Game.spawns[name];
-      SpawnManager.runSpawn(spawn);
-    }
+export const run = () => {
+  for (const name in Game.spawns) {
+    const spawn = Game.spawns[name];
+    runSpawn(spawn);
   }
+};
 
-  private static runSpawn(spawn: StructureSpawn) {
-    const result = spawn.spawnCreep([WORK, MOVE, CARRY], "Steve", {
-      dryRun: true
+const runSpawn = (spawn: StructureSpawn) => {
+  const result = spawn.spawnCreep(Steve.body(), "Steve", {
+    dryRun: true
+  });
+
+  if (result === OK) {
+    spawn.spawnCreep(Steve.body(), "Steve", {
+      dryRun: false,
+      memory: Steve.memory({
+        role: CreepRole.steve
+      })
     });
-
-    if (result === OK) {
-      spawn.spawnCreep([WORK, MOVE, CARRY], "Steve", {
-        dryRun: false,
-        memory: {
-          role: CreepRole.steve,
-          room: "",
-          working: false
-        }
-      });
-    }
   }
 }
