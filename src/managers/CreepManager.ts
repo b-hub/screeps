@@ -1,7 +1,9 @@
 import * as Steve from "creeps/Steve";
+import * as Upgrader from "creeps/Upgrader";
 
 export enum CreepRole {
-  steve = "steve"
+  steve = "steve",
+  upgrader = "upgrader"
 }
 
 export const run = () => {
@@ -16,7 +18,10 @@ const runCreep = (creep: Creep) => {
 
   switch (creepRole) {
     case CreepRole.steve:
-      Steve.run(creep);
+      Steve.run(creep, creep.memory.current);
+      break;
+    case CreepRole.upgrader:
+      Upgrader.run(creep, creep.memory.current);
       break;
     default:
       console.log(`unknown creep role '${creepRole}'`);

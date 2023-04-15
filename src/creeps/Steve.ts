@@ -1,14 +1,15 @@
-import { BodyGenerator, SpawnConfig, currentMemory } from "./utils";
+import { BodyGenerator, SpawnConfig } from "./utils";
+import * as Upgrader from "./Upgrader";
+import * as SpawnEnergiser from "./SpawnEnergiser";
 
 type SteveMemory = {
-  state: SteveState;
+  role: SteveRole;
+  current: any;
 };
 
-enum SteveState {
-  harvesting,
-  upgrading,
-  transferring,
-  null
+enum SteveRole {
+  upgrader,
+  spawnEnergiser,
 }
 
 export const spawnConfig = (): SpawnConfig => {
@@ -16,7 +17,8 @@ export const spawnConfig = (): SpawnConfig => {
     name: "Steve", // there can only be one
     body: body,
     memory: {
-      state: SteveState.harvesting
+      role: SteveRole.spawnEnergiser, // get other creeps spawning faster
+      current: {}
     }
   }
 }
@@ -36,98 +38,18 @@ function* body(): BodyGenerator {
   }
 }
 
-export const run = (creep: Creep) => {
-  const memory = currentMemory<SteveMemory>(creep);
+export const run = (creep: Creep, memory: SteveMemory) => {
+  const creepRole = memory.role;
 
-  switch (memory.state) {
+  switch (creepRole) {
+    case SteveRole.spawnEnergiser:
+      SpawnEnergiser.run(creep, creep.memory.current);
+      break;
+    case SteveRole.upgrader:
+      Upgrader.run(creep, creep.memory.current);
+      break;
     default:
-    case SteveState.harvesting:
-      memory.state = harvest(creep);
-      break;
-    case SteveState.upgrading:
-      memory.state = upgrade(creep);
-      break;
-    case SteveState.transferring:
-      memory.state = transfer(creep);
-      break;
-    case SteveState.null:
-      // do nothing
+      console.log(`unknown creep role '${creepRole}'`);
       break;
   }
 };
-
-const harvest = (creep: Creep): SteveState => {
-  const source = getClosestSource(creep);
-  if (source === null) {
-    creep.say("😢Steve has no purpose");
-    creep.suicide();
-    return SteveState.null;
-  }
-
-  const result = creep.harvest(source);
-  if (result === ERR_NOT_IN_RANGE) {
-    creep.moveTo(source);
-  }
-
-  if (creep.store.getFreeCapacity() === 0) {
-    creep.say("🚀");
-    return SteveState.upgrading;
-  }
-
-  return SteveState.harvesting;
-}
-
-const upgrade = (creep: Creep): SteveState => {
-  const controller = creep.room.controller;
-  if (controller === undefined) {
-    creep.say("no controller!");
-    return SteveState.transferring;
-  }
-  const result = creep.upgradeController(controller);
-
-  if (result === ERR_NOT_IN_RANGE) {
-    creep.moveTo(controller);
-  }
-
-  if (creep.store.getUsedCapacity() === 0) {
-    creep.say("⛏️");
-    return SteveState.harvesting;
-  }
-
-  return SteveState.upgrading;
-}
-
-const transfer = (creep: Creep): SteveState => {
-  const spawn = getClosestSpawn(creep);
-  if (spawn === null) {
-    creep.say("no spawn!");
-    creep.drop(RESOURCE_ENERGY);
-    return SteveState.upgrading;
-  }
-  const result = creep.transfer(spawn, RESOURCE_ENERGY);
-
-  if (result === ERR_NOT_IN_RANGE) {
-    creep.moveTo(spawn);
-  }
-
-  if (creep.store.getUsedCapacity() === 0) {
-    creep.say("⛏️");
-    return SteveState.upgrading;
-  }
-
-  return SteveState.transferring;
-}
-
-const getClosestSource = (creep: Creep): Source | null => {
-  const sources = creep.room.find(FIND_SOURCES);
-  return sources.length > 0
-    ? sources[0]
-    : null;
-}
-
-const getClosestSpawn = (creep: Creep): StructureSpawn | null => {
-  const spawns = creep.room.find(FIND_MY_SPAWNS);
-  return spawns.length > 0
-    ? spawns[0]
-    : null;
-}

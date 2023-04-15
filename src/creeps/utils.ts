@@ -5,8 +5,3 @@ export type SpawnConfig = {
   body: () => BodyGenerator;
   memory: any;
 }
-
-export const currentMemory = <T,>(creep: Creep): T => {
-  const memory = creep.memory as CreepMemory;
-  return memory.current;
-}

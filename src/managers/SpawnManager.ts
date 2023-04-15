@@ -1,5 +1,6 @@
 import { CreepRole } from "./CreepManager";
 import * as Steve from "creeps/Steve";
+import * as Upgrader from "creeps/Upgrader";
 import {SpawnConfig, BodyGenerator} from "creeps/utils";
 
 export const run = () => {
@@ -13,12 +14,19 @@ const runSpawn = (spawn: StructureSpawn) => {
   const steveConfig = Steve.spawnConfig();
   if (!Game.creeps[steveConfig.name]) {
     console.log("No steve, spawning...")
-    spawnCreep(spawn, steveConfig);
+    spawnCreep(spawn, steveConfig, CreepRole.steve);
+    return;
   }
+
+  spawnCreep(spawn, Upgrader.spawnConfig(), CreepRole.upgrader);
 
 }
 
-const spawnCreep = (spawn: StructureSpawn, config: SpawnConfig) => {
+const spawnCreep = (spawn: StructureSpawn, config: SpawnConfig, role: CreepRole) => {
+  if (spawn.room.energyAvailable !== spawn.room.energyCapacityAvailable) {
+    return;
+  }
+
   const name = config.name;
   const body = maxBody(config.body(), spawn.room.energyAvailable);
   if (!body) {
@@ -34,7 +42,7 @@ const spawnCreep = (spawn: StructureSpawn, config: SpawnConfig) => {
     spawn.spawnCreep(body, name, {
       dryRun: false,
       memory: {
-        role: CreepRole.steve,
+        role: role,
         current: config.memory
       }
     });
