@@ -11,12 +11,13 @@
 /node_modules
 /_book
 /build/*
+/dist
 
 # TypeScript definitions installed by Typings
 /typings
 
 # Screeps Config
-screeps.json
+screeps.secrets.json
 
 # ScreepsServer data from integration tests
 /server

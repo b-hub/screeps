@@ -2,9 +2,29 @@
 
 // memory extension samples
 interface CreepMemory {
-  role: number;
-  room: string;
-  working: boolean;
+  role: string;
+  current: any;
+  tmp?: any;
+}
+
+interface SpawnMemory {
+  nextRole?: string;
+}
+
+interface RoomMemory {
+  mineLocations?: MineLocation[];
+}
+
+interface MineLocation {
+  sourcePos: Pos;
+  containerPos: Pos;
+  minePos: Pos;
+  creepName?: string;
+}
+
+interface Pos {
+  x: number;
+  y: number;
 }
 
 interface RoomStats {

@@ -1,108 +1,106 @@
-interface SteveMemory extends CreepMemory {
-  state: SteveState;
-}
+import { CreepBodyGenerator, CreepSpawnConfig } from "./roles/utils";
+import { Roles, Role } from "./roles";
+import * as HeavyMiner from "./roles/HeavyMiner";
 
-export enum SteveState {
-  harvesting,
-  upgrading,
-  transferring,
-  null,
-}
+type Memory = {
+  role: Role;
+  current: any;
+};
 
-export class Steve {
-  public static run(creep: Creep) {
-    const memory = creep.memory as SteveMemory;
+export const spawnConfig = (): CreepSpawnConfig => {
+  const memory: Memory = {
+    role: "SpawnSupplier", // get other creeps spawning faster
+    current: {}
+  };
 
-    switch (memory.state) {
-      default:
-      case SteveState.harvesting:
-        memory.state = harvest(creep);
-        break;
-      case SteveState.upgrading:
-        memory.state = upgrade(creep);
-        break;
-      case SteveState.transferring:
-        memory.state = transfer(creep);
-        break;
-      case SteveState.null:
-        // do nothing
-        break;
-    }
+  return {
+    name: "Steve", // there can only be one
+    body: body,
+    memory: memory
   }
 }
 
-function harvest(creep: Creep): SteveState {
-  const source = getClosestSource(creep);
-  if (source === null) {
-    creep.say("Steve has no purpose");
-    creep.suicide();
-    return SteveState.null;
-  }
+function* body(): CreepBodyGenerator {
+  let currentBody: BodyPartConstant[] = [WORK, CARRY, MOVE];
+  yield currentBody; // minimum
 
-  const result = creep.harvest(source);
-  if (result === ERR_NOT_IN_RANGE) {
-    creep.moveTo(source);
+  while (true) {
+    // ensures that we always have enough movement for [WORK,CARRY]
+    currentBody = currentBody.concat([MOVE]);
+    yield currentBody;
+    currentBody = currentBody.concat([WORK]);
+    yield currentBody;
+    currentBody = currentBody.concat([CARRY]);
+    yield currentBody;
   }
-
-  if (creep.store.getFreeCapacity() === 0) {
-    creep.say("upgrading");
-    return SteveState.upgrading;
-  }
-
-  return SteveState.harvesting;
 }
 
-function upgrade(creep: Creep): SteveState {
-  const controller = creep.room.controller;
-  if (controller === undefined) {
-    creep.say("no controller!");
-    return SteveState.transferring;
-  }
-  const result = creep.upgradeController(controller);
-
-  if (result === ERR_NOT_IN_RANGE) {
-    creep.moveTo(controller);
+export const run = () => {
+  const creep = Game.creeps.Steve;
+  if (!creep) {
+    return;
   }
 
-  if (creep.store.getUsedCapacity() === 0) {
-    creep.say("harvesting");
-    return SteveState.harvesting;
+  const memory = creep.memory.current as Memory;
+  const role = setNextRoleToSpawn(creep) ?? memory.role;
+
+  if (memory.role !== role) {
+    memory.current = {};
+    memory.role = role;
   }
 
-  return SteveState.upgrading;
+  Roles[role].run(creep, memory.current);
+};
+
+const setNextRoleToSpawn = (creep: Creep): Role | null => {
+  const spawn = findSpawn(creep);
+  let role = null;
+  if (!spawn || spawn.memory.nextRole) {
+    return role;
+  }
+
+  const creeps = creep.room.find(FIND_MY_CREEPS);
+  const spawnSupplierRole: Role = "SpawnSupplier";
+  if (creeps.filter(c => c.memory.role === spawnSupplierRole).length < 1) {
+    spawn.memory.nextRole = spawnSupplierRole;
+    return spawnSupplierRole;
+  }
+
+  const minerRole: Role = "HeavyMiner";
+  const availableLocs = HeavyMiner.availableMiningLocations(creep.room).length;
+  if (availableLocs > 0) {
+    spawn.memory.nextRole = minerRole;
+    return role;
+  }
+
+  const upgraderRole: Role = "Upgrader";
+  spawn.memory.nextRole = upgraderRole;
+
+  return upgraderRole;
 }
 
-function transfer(creep: Creep): SteveState {
-  const spawn = getClosestSpawn(creep);
-  if (spawn === null) {
-    creep.say("no spawn!");
-    creep.drop(RESOURCE_ENERGY);
-    return SteveState.upgrading;
-  }
-  const result = creep.transfer(spawn, RESOURCE_ENERGY);
-
-  if (result === ERR_NOT_IN_RANGE) {
-    creep.moveTo(spawn);
-  }
-
-  if (creep.store.getUsedCapacity() === 0) {
-    creep.say("harvesting");
-    return SteveState.upgrading;
-  }
-
-  return SteveState.transferring;
-}
-
-function getClosestSource(creep: Creep): Source | null {
-  const sources = creep.room.find(FIND_SOURCES);
-  return sources.length > 0
-    ? sources[0]
-    : null;
-}
-
-function getClosestSpawn(creep: Creep): StructureSpawn | null {
+const findSpawn = (creep: Creep): StructureSpawn | null => {
   const spawns = creep.room.find(FIND_MY_SPAWNS);
   return spawns.length > 0
     ? spawns[0]
     : null;
+}
+
+const getContainerPosition = (room: Room): RoomPosition | null => {
+  const spawn = room.find(FIND_MY_SPAWNS)[0];
+  const source = spawn.pos.findClosestByPath(FIND_SOURCES);
+  if (!source) {
+    return null;
+  }
+
+  for (let i = -1; i <= 1; i++) {
+    for (let j = -1; j <= 1; j++) {
+      const pos = room.getPositionAt(source.pos.x + i, source.pos.y + j);
+      if (pos && room.getTerrain().get(pos.x, pos.y) === 0) {
+        return pos;
+      }
+    }
+  }
+
+  return null;
 }
