@@ -3,6 +3,7 @@ import * as HeavyMiner from "./HeavyMiner";
 
 type Memory = {
   state: State;
+  containerPos?: Pos;
 };
 
 enum State {
@@ -41,7 +42,7 @@ export const run = (creep: Creep, memory: Memory) => {
   switch (memory.state) {
     default:
     case State.withdraw:
-      memory.state = withdraw(creep);
+      memory.state = withdraw(creep, memory);
       break;
     case State.harvesting:
       memory.state = harvest(creep);
@@ -55,12 +56,26 @@ export const run = (creep: Creep, memory: Memory) => {
   }
 };
 
-const withdraw = (creep: Creep): State => {
-  const container = creep.room.find(FIND_STRUCTURES).find(s => s.structureType === "container");
+const withdraw = (creep: Creep, memory: Memory): State => {
+  let container: StructureContainer | undefined;
+  if (memory.containerPos) {
+    container = creep.room.lookForAt(LOOK_STRUCTURES, memory.containerPos.x, memory.containerPos.y)
+    .filter(s => s.structureType === "container")
+    .map(s => s as StructureContainer)[0];
+  }
+
+  if (!container) {
+    container = creep.room.find(FIND_STRUCTURES)
+    .filter(s => s.structureType === "container")
+    .map(s => s as StructureContainer)
+    .sort((a, b) => a.store.getFreeCapacity() - b.store.getFreeCapacity())[0];
+  }
+
   if (!container) {
     return State.harvesting;
   }
 
+  memory.containerPos = container.pos;
   const result = creep.withdraw(container, "energy");
   if (result === ERR_NOT_IN_RANGE) {
     creep.moveTo(container);
@@ -68,6 +83,7 @@ const withdraw = (creep: Creep): State => {
 
   if (creep.store.getFreeCapacity() === 0) {
     creep.say("🚀");
+    memory.containerPos = undefined;
     return State.transferring;
   }
 
