@@ -9,7 +9,6 @@ enum State {
   transferring = "transferring",
   building = "building",
   harvesting = "harvesting",
-  null = "null"
 }
 
 export const spawnConfig = (): CreepSpawnConfig => {
@@ -45,16 +44,13 @@ export const run = (creep: Creep, memory: Memory) => {
     case State.building:
       memory.state = build(creep, memory);
       break;
-    case State.null:
-      // do nothing
-      break;
   }
 };
 
 const harvest = (creep: Creep, memory: Memory): State => {
   const source = findAndAssignSource(creep, memory);
   if (source === null) {
-    return State.null;
+    return State.harvesting;
   }
 
   const result = creep.harvest(source);
@@ -71,7 +67,7 @@ const harvest = (creep: Creep, memory: Memory): State => {
 }
 
 const build = (creep: Creep, memory: Memory): State => {
-  const containerPos = memory.post?.containerPos;
+  const containerPos = memory.post?.minePos;
   if (!containerPos) {
     console.log("something went wrong");
     return State.building;
@@ -110,7 +106,7 @@ const build = (creep: Creep, memory: Memory): State => {
 };
 
 const transfer = (creep: Creep, memory: Memory): State => {
-  const containerPos = memory.post?.containerPos;
+  const containerPos = memory.post?.minePos;
   if (!containerPos) {
     return State.building;
   }
@@ -185,6 +181,5 @@ const sourceMineLocs = (source: Source): MineLocation[] => {
     }
   }
 
-  const containerPos = positions[0];
-  return positions.map(p => ({minePos: p, containerPos, sourcePos: source.pos}));
+  return positions.map(p => ({minePos: p, sourcePos: source.pos}));
 }

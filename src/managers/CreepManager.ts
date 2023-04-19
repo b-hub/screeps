@@ -1,4 +1,4 @@
-import { Roles, isRole } from "../creeps/roles";
+import { Roles, isRole, Role } from "../creeps/roles";
 import * as Witness from "creeps/tempRoles/Witness";
 import { isAlive, isSpawning, creepAge } from "../creeps/utils";
 
@@ -10,14 +10,14 @@ export const run = () => {
 
 
 const runCreep = (creep: Creep) => {
-  const role = creep.memory.role;
+  let role: Role = creep.memory.role as Role;
   if (!isRole(role)) {
     return;
   }
 
   const steve = Game.creeps.Steve;
   if (isSpawning(steve) ||
-      !isAlive(steve) && role !== "SpawnSupplier" ||
+      !isAlive(steve) && role !== "Supplier" ||
       isAlive(steve) && creepAge(steve) < 5) {
     return witnessTheBirthOfSteve(creep);
   }

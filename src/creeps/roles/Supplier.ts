@@ -10,7 +10,6 @@ enum State {
   withdraw = "withdraw",
   harvesting = "harvesting",
   transferring = "transferring",
-  null = "null"
 }
 
 export const spawnConfig = (): CreepSpawnConfig => {
@@ -29,9 +28,7 @@ function* body(): CreepBodyGenerator {
 
   while (true) {
     // ensures that we always have enough movement for [WORK,CARRY]
-    currentBody = currentBody.concat([MOVE]);
-    yield currentBody;
-    currentBody = currentBody.concat([WORK]);
+    currentBody = currentBody.concat([MOVE, WORK]);
     yield currentBody;
     currentBody = currentBody.concat([CARRY]);
     yield currentBody;
@@ -49,9 +46,6 @@ export const run = (creep: Creep, memory: Memory) => {
       break;
     case State.transferring:
       memory.state = transfer(creep);
-      break;
-    case State.null:
-      // do nothing
       break;
   }
 };
@@ -94,7 +88,7 @@ const harvest = (creep: Creep): State => {
   const loc = HeavyMiner.availableMiningLocation(creep.room);
   const source = loc ? creep.room.lookForAt(LOOK_SOURCES, loc.sourcePos.x, loc.sourcePos.y)[0] : null;
   if (!source) {
-    return State.null;
+    return State.harvesting;
   }
 
   const result = creep.harvest(source);
@@ -111,14 +105,14 @@ const harvest = (creep: Creep): State => {
 }
 
 const transfer = (creep: Creep): State => {
-  const spawn = creep.room.find(FIND_MY_SPAWNS)[0];
-  if (spawn === null) {
-    return State.null;
+  const target = closestAvailableExtension(creep) ?? closestAvailableSpawn(creep);
+  if (target === null) {
+    return State.harvesting;
   }
-  const result = creep.transfer(spawn, RESOURCE_ENERGY);
+  const result = creep.transfer(target, RESOURCE_ENERGY);
 
   if (result === ERR_NOT_IN_RANGE) {
-    creep.moveTo(spawn);
+    creep.moveTo(target);
   }
 
   if (creep.store.getUsedCapacity() === 0) {
@@ -127,4 +121,39 @@ const transfer = (creep: Creep): State => {
   }
 
   return State.transferring;
+}
+
+const closestAvailableExtension = (creep: Creep): StructureExtension | null => {
+  const structure = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+    filter: s => s.structureType === "extension" && s.store.getFreeCapacity("energy") > 0
+  });
+
+
+
+  if (structure === null) {
+    return null;
+  }
+
+  if (structure.structureType === "extension") {
+    return structure;
+
+  }
+
+  return null;
+}
+
+const closestAvailableSpawn = (creep: Creep): StructureSpawn | null => {
+  const structure = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+    filter: s => s.structureType === "spawn" && s.store.getFreeCapacity("energy") > 0
+  });
+
+  if (structure === null) {
+    return null;
+  }
+
+  if (structure.structureType === "spawn") {
+    return structure;
+  }
+
+  return null;
 }

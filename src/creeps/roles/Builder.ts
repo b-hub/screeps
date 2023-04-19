@@ -6,8 +6,7 @@ type Memory = {
 
 enum State {
   building,
-  harvesting,
-  null
+  harvesting
 }
 
 export const spawnConfig = (): CreepSpawnConfig => {
@@ -44,16 +43,13 @@ export const run = (creep: Creep, memory: Memory) => {
     case State.building:
       memory.state = build(creep);
       break;
-    case State.null:
-      // do nothing
-      break;
   }
 };
 
 const harvest = (creep: Creep): State => {
   const source = findSource(creep);
   if (source === null) {
-    return State.null;
+    return State.harvesting;
   }
 
   const result = creep.harvest(source);
@@ -72,7 +68,7 @@ const harvest = (creep: Creep): State => {
 const build = (creep: Creep): State => {
   const sites = creep.room.find(FIND_CONSTRUCTION_SITES);
   if (sites.length === 0) {
-    return State.null;
+    return State.harvesting;
   }
 
   const site = sites[0];

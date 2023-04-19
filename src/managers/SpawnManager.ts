@@ -11,19 +11,21 @@ export const run = () => {
 };
 
 const runSpawn = (spawn: StructureSpawn) => {
+  const useMaxEnergy = spawn.room.find(FIND_MY_CREEPS).some(c => c.memory.role === "Supplier");
+
   if (!isAlive(Game.creeps.Steve)) {
-    spawnCreep(spawn, Steve.spawnConfig(), "");
+    spawnCreep(spawn, Steve.spawnConfig(), "", useMaxEnergy);
     return;
   }
 
   const role = spawn.memory.nextRole;
-  if (role && isRole(role) && spawnCreep(spawn, Roles[role].spawnConfig(), role)) {
+  if (role && isRole(role) && spawnCreep(spawn, Roles[role].spawnConfig(), role, useMaxEnergy)) {
     spawn.memory.nextRole = undefined;
   }
 }
 
-const spawnCreep = (spawn: StructureSpawn, config: CreepSpawnConfig, role: string): boolean => {
-  if (spawn.room.energyAvailable !== spawn.room.energyCapacityAvailable) {
+const spawnCreep = (spawn: StructureSpawn, config: CreepSpawnConfig, role: string, useMaxEnergy: boolean): boolean => {
+  if (useMaxEnergy && spawn.room.energyAvailable !== spawn.room.energyCapacityAvailable) {
     return false;
   }
 

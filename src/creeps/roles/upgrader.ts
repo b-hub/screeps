@@ -9,8 +9,7 @@ type Memory = {
 enum State {
   withdraw = "withdraw",
   harvesting = "harvesting",
-  transferring = "transferring",
-  null = "null"
+  transferring = "transferring"
 }
 
 export const spawnConfig = (): CreepSpawnConfig => {
@@ -49,9 +48,6 @@ export const run = (creep: Creep, memory: Memory) => {
       break;
     case State.transferring:
       memory.state = transfer(creep);
-      break;
-    case State.null:
-      // do nothing
       break;
   }
 };
@@ -94,7 +90,7 @@ const harvest = (creep: Creep): State => {
   const loc = HeavyMiner.availableMiningLocation(creep.room);
   const source = loc ? creep.room.lookForAt(LOOK_SOURCES, loc.sourcePos.x, loc.sourcePos.y)[0] : null;
   if (!source) {
-    return State.null;
+    return State.harvesting;
   }
 
   const result = creep.harvest(source);
@@ -114,7 +110,7 @@ const transfer = (creep: Creep): State => {
   const controller = creep.room.controller;
   if (controller === undefined) {
     creep.say("no controller!");
-    return State.null;
+    return State.harvesting;
   }
   const result = creep.transfer(controller, RESOURCE_ENERGY);
 

@@ -9,7 +9,7 @@ type Memory = {
 
 export const spawnConfig = (): CreepSpawnConfig => {
   const memory: Memory = {
-    role: "SpawnSupplier", // get other creeps spawning faster
+    role: "Supplier", // get other creeps spawning faster
     current: {}
   };
 
@@ -60,7 +60,7 @@ const setNextRoleToSpawn = (creep: Creep): Role | null => {
   }
 
   const creeps = creep.room.find(FIND_MY_CREEPS);
-  const spawnSupplierRole: Role = "SpawnSupplier";
+  const spawnSupplierRole: Role = "Supplier";
   if (creeps.filter(c => c.memory.role === spawnSupplierRole).length < 1) {
     spawn.memory.nextRole = spawnSupplierRole;
     return spawnSupplierRole;
@@ -70,6 +70,12 @@ const setNextRoleToSpawn = (creep: Creep): Role | null => {
   const availableLocs = HeavyMiner.availableMiningLocations(creep.room).length;
   if (availableLocs > 0) {
     spawn.memory.nextRole = minerRole;
+    return role;
+  }
+
+  const builderRole: Role = "Builder";
+  if (creep.room.find(FIND_CONSTRUCTION_SITES).length > 0) {
+    spawn.memory.nextRole = builderRole;
     return role;
   }
 
