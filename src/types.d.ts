@@ -18,6 +18,7 @@ interface RoomMemory {
 interface MineLocation {
   sourcePos: Pos;
   minePos: Pos;
+  allMinePos: Pos[];
   creepName?: string;
 }
 

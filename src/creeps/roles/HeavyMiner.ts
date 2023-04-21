@@ -33,22 +33,28 @@ function* body(): CreepBodyGenerator {
 }
 
 export const run = (creep: Creep, memory: Memory) => {
+  const post = findAndAssignPost(creep, memory);
+  if (!post) {
+    console.log("No post!");
+    return;
+  }
+
   switch (memory.state) {
     default:
     case State.harvesting:
       memory.state = harvest(creep, memory);
       break;
     case State.transferring:
-      memory.state = transfer(creep, memory);
+      memory.state = transfer(creep, post);
       break;
     case State.building:
-      memory.state = build(creep, memory);
+      memory.state = build(creep, post);
       break;
   }
 };
 
 const harvest = (creep: Creep, memory: Memory): State => {
-  const source = findAndAssignSource(creep, memory);
+  const source = findSource(creep, memory);
   if (source === null) {
     return State.harvesting;
   }
@@ -66,25 +72,28 @@ const harvest = (creep: Creep, memory: Memory): State => {
   return State.harvesting;
 }
 
-const build = (creep: Creep, memory: Memory): State => {
-  const containerPos = memory.post?.minePos;
-  if (!containerPos) {
-    console.log("something went wrong");
-    return State.building;
-  }
-
-  const sitePos = creep.room.getPositionAt(containerPos.x, containerPos.y);
-  if (!sitePos) {
-    console.log("invalid position");
-    return State.building;
-  }
-
-  if (sitePos.lookFor(LOOK_STRUCTURES).length > 0) {
+const build = (creep: Creep, post: MineLocation): State => {
+  // own position has a container
+  if (creep.room.getPositionAt(post.minePos.x, post.minePos.y)?.lookFor(LOOK_STRUCTURES).length ?? 0 > 0) {
     return State.transferring;
   }
 
-  let sites = sitePos?.lookFor(LOOK_CONSTRUCTION_SITES);
-  if (sites && sites.length === 0) {
+  let sitePos: RoomPosition | null = null;
+  for (let i = 0; i < post.allMinePos.length; i++) {
+    const containerPos = post.allMinePos[i];
+    sitePos = creep.room.getPositionAt(containerPos.x, containerPos.y);
+    if (!sitePos) {
+      console.log("invalid position");
+      return State.building;
+    }
+
+    if (sitePos.lookFor(LOOK_STRUCTURES).length > 0) {
+      return State.transferring;
+    }
+  }
+
+  let sites = sitePos!.lookFor(LOOK_CONSTRUCTION_SITES);
+  if (sitePos && sites && sites.length === 0) {
     creep.say("🚧");
     creep.room.createConstructionSite(sitePos, STRUCTURE_CONTAINER);
     sites = sitePos.lookFor(LOOK_CONSTRUCTION_SITES);
@@ -105,13 +114,8 @@ const build = (creep: Creep, memory: Memory): State => {
   return State.building;
 };
 
-const transfer = (creep: Creep, memory: Memory): State => {
-  const containerPos = memory.post?.minePos;
-  if (!containerPos) {
-    return State.building;
-  }
-
-  const sitePos = creep.room.getPositionAt(containerPos.x, containerPos.y);
+const transfer = (creep: Creep, post: MineLocation): State => {
+  const sitePos = creep.room.getPositionAt(post.minePos.x, post.minePos.y);
   if (!sitePos) {
     console.log("Invalid site position");
     return State.transferring;
@@ -131,13 +135,21 @@ const transfer = (creep: Creep, memory: Memory): State => {
   return State.transferring;
 };
 
-const findAndAssignSource = (creep: Creep, memory: Memory): Source | null => {
-  const room = creep.room;
-  if (memory.post) {
-    return room.lookForAt(LOOK_SOURCES, memory.post.sourcePos.x, memory.post.sourcePos.y)[0];
+const findSource = (creep: Creep, memory: Memory): Source | null => {
+  const post = findAndAssignPost(creep, memory);
+  if (!post) {
+    return null;
   }
+  return creep.room.lookForAt(LOOK_SOURCES, post.sourcePos.x, post.sourcePos.y)[0]
+}
 
-  const availablePost = availableMiningLocation(room);
+const findAndAssignPost = (creep: Creep, memory: Memory): MineLocation | null  => {
+  const room = creep.room;
+  // if (memory.post) {
+  //   return memory.post;
+  // }
+
+  const availablePost = existingMiningLocation(creep) ?? availableMiningLocation(room);
 
   if (!availablePost) {
     return null;
@@ -145,7 +157,11 @@ const findAndAssignSource = (creep: Creep, memory: Memory): Source | null => {
 
   availablePost.creepName = creep.name;
   memory.post = availablePost;
-  return room.lookForAt(LOOK_SOURCES, availablePost.sourcePos.x, availablePost.sourcePos.y)[0];
+  return memory.post;
+}
+
+export const existingMiningLocation = (creep: Creep): MineLocation | undefined => {
+  return roomMineLocs(creep.room).find(p => p.creepName === creep.name);
 }
 
 export const availableMiningLocation = (room: Room): MineLocation | undefined => {
@@ -175,11 +191,13 @@ const sourceMineLocs = (source: Source): MineLocation[] => {
   for (let i = -1; i <= 1; i++) {
     for (let j = -1; j <= 1; j++) {
       const pos = room.getPositionAt(source.pos.x + i, source.pos.y + j);
-      if (pos && room.getTerrain().get(pos.x, pos.y) === 0) {
+      if (!pos) continue;
+      const terrain = room.getTerrain().get(pos.x, pos.y);
+      if (terrain === 0 || terrain === TERRAIN_MASK_SWAMP) {
         positions.push(pos);
       }
     }
   }
 
-  return positions.map(p => ({minePos: p, sourcePos: source.pos}));
+  return positions.map(p => ({minePos: p, sourcePos: source.pos, allMinePos: positions}));
 }
