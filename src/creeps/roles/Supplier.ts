@@ -88,7 +88,7 @@ const harvest = (creep: Creep): State => {
   const loc = HeavyMiner.availableMiningLocation(creep.room);
   const source = loc ? creep.room.lookForAt(LOOK_SOURCES, loc.sourcePos.x, loc.sourcePos.y)[0] : null;
   if (!source) {
-    return State.harvesting;
+    return State.withdraw;
   }
 
   const result = creep.harvest(source);
@@ -105,7 +105,7 @@ const harvest = (creep: Creep): State => {
 }
 
 const transfer = (creep: Creep): State => {
-  const target = closestAvailableExtension(creep) ?? closestAvailableSpawn(creep);
+  const target = availableExtension(creep) ?? spawn(creep);
   if (target === null) {
     return State.harvesting;
   }
@@ -123,14 +123,13 @@ const transfer = (creep: Creep): State => {
   return State.transferring;
 }
 
-const closestAvailableExtension = (creep: Creep): StructureExtension | null => {
-  const structure = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+const availableExtension = (creep: Creep): StructureExtension | null => {
+  const structure = creep.room.find(FIND_MY_STRUCTURES, {
     filter: s => s.structureType === "extension" && s.store.getFreeCapacity("energy") > 0
-  });
+  })[0];
 
 
-
-  if (structure === null) {
+  if (!structure) {
     return null;
   }
 
@@ -142,12 +141,12 @@ const closestAvailableExtension = (creep: Creep): StructureExtension | null => {
   return null;
 }
 
-const closestAvailableSpawn = (creep: Creep): StructureSpawn | null => {
-  const structure = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-    filter: s => s.structureType === "spawn" && s.store.getFreeCapacity("energy") > 0
-  });
+const spawn = (creep: Creep): StructureSpawn | null => {
+  const structure = creep.room.find(FIND_MY_STRUCTURES, {
+    filter: s => s.structureType === "spawn"
+  })[0];
 
-  if (structure === null) {
+  if (!structure) {
     return null;
   }
 
