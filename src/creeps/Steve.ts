@@ -1,6 +1,7 @@
 import { CreepBodyGenerator, CreepSpawnConfig } from "./roles/utils";
 import { Roles, Role } from "./roles";
 import * as HeavyMiner from "./roles/HeavyMiner";
+import * as Runner from "./roles/Runner";
 
 type Memory = {
   role: Role;
@@ -55,7 +56,7 @@ export const run = () => {
 const setNextRoleToSpawn = (creep: Creep): Role | null => {
   const spawn = findSpawn(creep);
   let role = null;
-  if (!spawn || spawn.memory.nextRole) {
+  if (!spawn) {
     return role;
   }
 
@@ -74,8 +75,14 @@ const setNextRoleToSpawn = (creep: Creep): Role | null => {
   }
 
   const builderRole: Role = "Builder";
-  if (creep.room.find(FIND_CONSTRUCTION_SITES).length > 0) {
+  if (creep.room.find(FIND_CONSTRUCTION_SITES).length > 0 && creeps.filter(c => c.memory.role === builderRole).length < 1) {
     spawn.memory.nextRole = builderRole;
+    return builderRole;
+  }
+
+  const runnerRole: Role = "Runner";
+  if (Runner.canSpawn(creep.room) && Runner.getAvailableRunLocations(creep).length > 0) {
+    spawn.memory.nextRole = runnerRole;
     return role;
   }
 

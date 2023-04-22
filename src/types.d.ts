@@ -13,11 +13,20 @@ interface SpawnMemory {
 
 interface RoomMemory {
   mineLocations?: MineLocation[];
+  runLocations?: RunLocation[];
+}
+
+interface RunLocation {
+  storagePos: Pos;
+  containerPos: Pos;
+  path: PathStep[];
+  creepName?: string;
 }
 
 interface MineLocation {
   sourcePos: Pos;
   minePos: Pos;
+  containerPos: Pos;
   allMinePos: Pos[];
   creepName?: string;
 }

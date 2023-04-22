@@ -47,7 +47,7 @@ export const run = (creep: Creep, memory: Memory) => {
       memory.state = harvest(creep);
       break;
     case State.transferring:
-      memory.state = transfer(creep);
+      memory.state = upgrade(creep);
       break;
   }
 };
@@ -106,15 +106,14 @@ const harvest = (creep: Creep): State => {
   return State.harvesting;
 }
 
-const transfer = (creep: Creep): State => {
+const upgrade = (creep: Creep): State => {
   const controller = creep.room.controller;
   if (controller === undefined) {
     creep.say("no controller!");
     return State.harvesting;
   }
-  const result = creep.transfer(controller, RESOURCE_ENERGY);
 
-  if (result === ERR_NOT_IN_RANGE) {
+  if(creep.upgradeController(controller) == ERR_NOT_IN_RANGE) {
     creep.moveTo(controller);
   }
 

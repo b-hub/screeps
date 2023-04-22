@@ -1,7 +1,5 @@
 import { CreepBodyGenerator, CreepSpawnConfig } from "./utils";
 
-const CONTAINER_REPAIR_TICS_THRESHOLD = 500;
-
 type Memory = {
   state: State;
   post?: MineLocation;
@@ -11,7 +9,6 @@ enum State {
   transferring = "transferring",
   building = "building",
   harvesting = "harvesting",
-  repairing = "repairing"
 }
 
 export const spawnConfig = (): CreepSpawnConfig => {
@@ -44,9 +41,6 @@ export const run = (creep: Creep, memory: Memory) => {
     case State.building:
       memory.state = build(creep, memory);
       break;
-    case State.repairing:
-      memory.state = repair(creep, memory);
-      break;
     case State.transferring:
       memory.state = transfer(creep, memory);
       break;
@@ -76,12 +70,12 @@ const build = (creep: Creep, memory: Memory): State => {
   const post = getPost(creep, memory);
   // own position has a container
   if (getContainer(creep, memory)) {
-    return State.repairing;
+    return State.transferring;
   }
 
   const pos = getContainerPos(creep, memory);
   if (!pos) {
-    return State.repairing;
+    return State.transferring;
   }
 
   let site = creep.room.lookForAt(LOOK_CONSTRUCTION_SITES, pos.x, pos.y)[0];
@@ -105,29 +99,6 @@ const build = (creep: Creep, memory: Memory): State => {
 
   return State.building;
 };
-
-const repair = (creep: Creep, memory: Memory): State => {
-  const container = getContainer(creep, memory);
-  if (!container) {
-    return State.building;
-  }
-
-  if (container.ticksToDecay > CONTAINER_REPAIR_TICS_THRESHOLD) {
-    return State.transferring;
-  }
-
-  const result = creep.repair(container);
-  if (result === ERR_NOT_IN_RANGE) {
-    creep.moveTo(container);
-  }
-
-  if (creep.store.getUsedCapacity() === 0) {
-    creep.say("⛏️");
-    return State.harvesting;
-  }
-
-  return State.repairing;
-}
 
 const transfer = (creep: Creep, memory: Memory): State => {
   const container = getContainer(creep, memory);
@@ -232,5 +203,9 @@ const sourceMineLocs = (source: Source): MineLocation[] => {
     }
   }
 
-  return positions.map(p => ({minePos: p, sourcePos: source.pos, allMinePos: positions}));
+  const containerPos = positions.find(p => room.getTerrain().get(p.x, p.y) === 0);
+  if (!containerPos) {
+    throw new Error("No available container pos");
+  }
+  return positions.map(p => ({minePos: p, sourcePos: source.pos, allMinePos: positions, containerPos: containerPos}));
 }

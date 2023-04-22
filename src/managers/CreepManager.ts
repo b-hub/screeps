@@ -15,12 +15,12 @@ const runCreep = (creep: Creep) => {
     return;
   }
 
-  const steve = Game.creeps.Steve;
-  if (isSpawning(steve) ||
-      !isAlive(steve) && role !== "Supplier" ||
-      isAlive(steve) && creepAge(steve) < 5) {
-    return witnessTheBirthOfSteve(creep);
-  }
+  // const steve = Game.creeps.Steve;
+  // if (isSpawning(steve) ||
+  //     !isAlive(steve) && role !== "Supplier" ||
+  //     isAlive(steve) && creepAge(steve) < 5) {
+  //   return witnessTheBirthOfSteve(creep);
+  // }
 
   creep.memory.tmp = undefined;
   return Roles[role].run(creep, creep.memory.current);

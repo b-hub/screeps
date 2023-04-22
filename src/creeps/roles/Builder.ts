@@ -1,12 +1,15 @@
 import { CreepBodyGenerator, CreepSpawnConfig } from "./utils";
+import * as HeavyMiner from "./HeavyMiner";
 
 type Memory = {
   state: State;
+  containerPos?: Pos;
 };
 
 enum State {
   building,
-  harvesting
+  harvesting,
+  withdrawing
 }
 
 export const spawnConfig = (): CreepSpawnConfig => {
@@ -25,11 +28,9 @@ function* body(): CreepBodyGenerator {
 
   while (true) {
     // ensures that we always have enough movement for [WORK,CARRY]
-    currentBody = currentBody.concat([MOVE]);
+    currentBody = currentBody.concat([MOVE, CARRY]);
     yield currentBody;
     currentBody = currentBody.concat([WORK]);
-    yield currentBody;
-    currentBody = currentBody.concat([CARRY]);
     yield currentBody;
   }
 }
@@ -43,13 +44,53 @@ export const run = (creep: Creep, memory: Memory) => {
     case State.building:
       memory.state = build(creep);
       break;
+    case State.withdrawing:
+      memory.state = withdraw(creep, memory);
+      break;
   }
 };
 
-const harvest = (creep: Creep): State => {
-  const source = findSource(creep);
-  if (source === null) {
+const withdraw = (creep: Creep, memory: Memory): State => {
+  let container: StructureContainer | undefined;
+  if (memory.containerPos) {
+    container = creep.room.lookForAt(LOOK_STRUCTURES, memory.containerPos.x, memory.containerPos.y)
+    .filter(s => s.structureType === "container")
+    .map(s => s as StructureContainer)
+    .filter(s => s.store.getUsedCapacity("energy") > 0)[0];
+  }
+
+  if (!container) {
+    container = creep.room.find(FIND_STRUCTURES)
+    .filter(s => s.structureType === "container")
+    .map(s => s as StructureContainer)
+    .filter(s => s.store.getUsedCapacity("energy") > 0)
+    .sort((a, b) => a.store.getFreeCapacity() - b.store.getFreeCapacity())[0];
+  }
+
+  if (!container) {
     return State.harvesting;
+  }
+
+  memory.containerPos = container.pos;
+  const result = creep.withdraw(container, "energy");
+  if (result === ERR_NOT_IN_RANGE) {
+    creep.moveTo(container);
+  }
+
+  if (creep.store.getFreeCapacity() === 0) {
+    creep.say("🚀");
+    memory.containerPos = undefined;
+    return State.building;
+  }
+
+  return State.withdrawing;
+}
+
+const harvest = (creep: Creep): State => {
+  const loc = HeavyMiner.availableMiningLocation(creep.room);
+  const source = loc ? creep.room.lookForAt(LOOK_SOURCES, loc.sourcePos.x, loc.sourcePos.y)[0] : null;
+  if (!source) {
+    return State.withdrawing;
   }
 
   const result = creep.harvest(source);
