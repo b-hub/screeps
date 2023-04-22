@@ -79,9 +79,17 @@ const build = (creep: Creep, memory: Memory): State => {
     return State.repairing;
   }
 
-  const site = getConstructionSite(creep, memory);
-  if (!site) {
+  const pos = getContainerPos(creep, memory);
+  if (!pos) {
     return State.repairing;
+  }
+
+  let site = creep.room.lookForAt(LOOK_CONSTRUCTION_SITES, pos.x, pos.y)[0];
+  if (!site) {
+    console.log("No construction at ", pos.x, pos.y);
+    creep.say("🚧");
+    creep.room.createConstructionSite(pos.x, pos.y, STRUCTURE_CONTAINER);
+    return State.building;
   }
 
   const result = creep.build(site)
@@ -99,13 +107,12 @@ const build = (creep: Creep, memory: Memory): State => {
 };
 
 const repair = (creep: Creep, memory: Memory): State => {
-  const containers = getAllContainers(creep, memory);
-  if (!containers.length) {
+  const container = getContainer(creep, memory);
+  if (!container) {
     return State.building;
   }
 
-  const container = containers.find(c => c.ticksToDecay < CONTAINER_REPAIR_TICS_THRESHOLD)
-  if (!container) {
+  if (container.ticksToDecay > CONTAINER_REPAIR_TICS_THRESHOLD) {
     return State.transferring;
   }
 
@@ -150,49 +157,23 @@ const findSource = (creep: Creep, memory: Memory): Source | null => {
   return creep.room.lookForAt(LOOK_SOURCES, post.sourcePos.x, post.sourcePos.y)[0]
 }
 
-const getAllContainers = (creep: Creep, memory: Memory): StructureContainer[] => {
-  const post = getPost(creep, memory);
-
-  return post.allMinePos.map(p => creep.room.lookForAt(LOOK_STRUCTURES, p.x, p.y).find(s => s.structureType === "container"))
-    .filter(s => !!s)
-    .map(s => s as StructureContainer);
-}
-
 const getContainer = (creep: Creep, memory: Memory): StructureContainer | null => {
-  const post = getPost(creep, memory);
-  const sitePos = creep.room.getPositionAt(post.minePos.x, post.minePos.y);
-  if (!sitePos) {
-    throw new Error("Invalid mining post");
-  }
-  const container = sitePos.lookFor(LOOK_STRUCTURES).find(s => s.structureType === "container");
-  if (!container) {
-    return null;
+  const pos = getContainerPos(creep, memory);
+  if (!pos) {
+    throw new Error("No container position");
   }
 
-  return container as StructureContainer;
+  const container = creep.room.lookForAt(LOOK_STRUCTURES, pos.x, pos.y).find(s => s.structureType === "container");
+  if (container) {
+    return container as StructureContainer;
+  }
+
+  return  null;
 }
 
-const getConstructionSite = (creep: Creep, memory: Memory): ConstructionSite | null => {
+const getContainerPos = (creep: Creep, memory: Memory): Pos | null => {
   const post = getPost(creep, memory);
-
-  for (let i = 0; i < post.allMinePos.length; i++) {
-    const pos = post.allMinePos[i];
-
-    if (creep.room.lookForAt(LOOK_STRUCTURES, pos.x, pos.y).find(s => s.structureType === "container")) {
-      continue;
-    }
-
-    const site = creep.room.lookForAt(LOOK_CONSTRUCTION_SITES, pos.x, pos.y)[0];
-    if (site) {
-      return site;
-    }
-
-    creep.say("🚧");
-    creep.room.createConstructionSite(pos.x, pos.y, STRUCTURE_CONTAINER);
-    return creep.room.lookForAt(LOOK_CONSTRUCTION_SITES, pos.x, pos.y)[0] ?? null;
-  }
-
-  return null;
+  return post.allMinePos.find(p => creep.room.getTerrain().get(p.x, p.y) === 0) ?? null;
 }
 
 const getPost = (creep: Creep, memory: Memory): MineLocation => {
