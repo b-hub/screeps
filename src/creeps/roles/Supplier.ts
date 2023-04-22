@@ -55,13 +55,15 @@ const withdraw = (creep: Creep, memory: Memory): State => {
   if (memory.containerPos) {
     container = creep.room.lookForAt(LOOK_STRUCTURES, memory.containerPos.x, memory.containerPos.y)
     .filter(s => s.structureType === "container")
-    .map(s => s as StructureContainer)[0];
+    .map(s => s as StructureContainer)
+    .filter(s => s.store.getUsedCapacity("energy") > 0)[0];
   }
 
   if (!container) {
     container = creep.room.find(FIND_STRUCTURES)
     .filter(s => s.structureType === "container")
     .map(s => s as StructureContainer)
+    .filter(s => s.store.getUsedCapacity("energy") > 0)
     .sort((a, b) => a.store.getFreeCapacity() - b.store.getFreeCapacity())[0];
   }
 

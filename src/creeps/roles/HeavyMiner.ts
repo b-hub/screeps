@@ -1,5 +1,7 @@
 import { CreepBodyGenerator, CreepSpawnConfig } from "./utils";
 
+const CONTAINER_REPAIR_TICS_THRESHOLD = 500;
+
 type Memory = {
   state: State;
   post?: MineLocation;
@@ -9,6 +11,7 @@ enum State {
   transferring = "transferring",
   building = "building",
   harvesting = "harvesting",
+  repairing = "repairing"
 }
 
 export const spawnConfig = (): CreepSpawnConfig => {
@@ -33,22 +36,19 @@ function* body(): CreepBodyGenerator {
 }
 
 export const run = (creep: Creep, memory: Memory) => {
-  const post = findAndAssignPost(creep, memory);
-  if (!post) {
-    console.log("No post!");
-    return;
-  }
-
   switch (memory.state) {
     default:
     case State.harvesting:
       memory.state = harvest(creep, memory);
       break;
-    case State.transferring:
-      memory.state = transfer(creep, post);
-      break;
     case State.building:
-      memory.state = build(creep, post);
+      memory.state = build(creep, memory);
+      break;
+    case State.repairing:
+      memory.state = repair(creep, memory);
+      break;
+    case State.transferring:
+      memory.state = transfer(creep, memory);
       break;
   }
 };
@@ -72,34 +72,18 @@ const harvest = (creep: Creep, memory: Memory): State => {
   return State.harvesting;
 }
 
-const build = (creep: Creep, post: MineLocation): State => {
+const build = (creep: Creep, memory: Memory): State => {
+  const post = getPost(creep, memory);
   // own position has a container
-  if (creep.room.getPositionAt(post.minePos.x, post.minePos.y)?.lookFor(LOOK_STRUCTURES).length ?? 0 > 0) {
-    return State.transferring;
+  if (getContainer(creep, memory)) {
+    return State.repairing;
   }
 
-  let sitePos: RoomPosition | null = null;
-  for (let i = 0; i < post.allMinePos.length; i++) {
-    const containerPos = post.allMinePos[i];
-    sitePos = creep.room.getPositionAt(containerPos.x, containerPos.y);
-    if (!sitePos) {
-      console.log("invalid position");
-      return State.building;
-    }
-
-    if (sitePos.lookFor(LOOK_STRUCTURES).length > 0) {
-      return State.transferring;
-    }
+  const site = getConstructionSite(creep, memory);
+  if (!site) {
+    return State.repairing;
   }
 
-  let sites = sitePos!.lookFor(LOOK_CONSTRUCTION_SITES);
-  if (sitePos && sites && sites.length === 0) {
-    creep.say("🚧");
-    creep.room.createConstructionSite(sitePos, STRUCTURE_CONTAINER);
-    sites = sitePos.lookFor(LOOK_CONSTRUCTION_SITES);
-  }
-
-  const site = sites[0];
   const result = creep.build(site)
 
   if (result === ERR_NOT_IN_RANGE) {
@@ -114,13 +98,36 @@ const build = (creep: Creep, post: MineLocation): State => {
   return State.building;
 };
 
-const transfer = (creep: Creep, post: MineLocation): State => {
-  const sitePos = creep.room.getPositionAt(post.minePos.x, post.minePos.y);
-  if (!sitePos) {
-    console.log("Invalid site position");
+const repair = (creep: Creep, memory: Memory): State => {
+  const containers = getAllContainers(creep, memory);
+  if (!containers.length) {
+    return State.building;
+  }
+
+  const container = containers.find(c => c.ticksToDecay < CONTAINER_REPAIR_TICS_THRESHOLD)
+  if (!container) {
     return State.transferring;
   }
-  const container = sitePos.lookFor(LOOK_STRUCTURES)[0];
+
+  const result = creep.repair(container);
+  if (result === ERR_NOT_IN_RANGE) {
+    creep.moveTo(container);
+  }
+
+  if (creep.store.getUsedCapacity() === 0) {
+    creep.say("⛏️");
+    return State.harvesting;
+  }
+
+  return State.repairing;
+}
+
+const transfer = (creep: Creep, memory: Memory): State => {
+  const container = getContainer(creep, memory);
+  if (!container) {
+    return State.building;
+  }
+
   const result = creep.transfer(container, RESOURCE_ENERGY);
 
   if (result === ERR_NOT_IN_RANGE) {
@@ -136,23 +143,68 @@ const transfer = (creep: Creep, post: MineLocation): State => {
 };
 
 const findSource = (creep: Creep, memory: Memory): Source | null => {
-  const post = findAndAssignPost(creep, memory);
+  const post = getPost(creep, memory);
   if (!post) {
     return null;
   }
   return creep.room.lookForAt(LOOK_SOURCES, post.sourcePos.x, post.sourcePos.y)[0]
 }
 
-const findAndAssignPost = (creep: Creep, memory: Memory): MineLocation | null  => {
+const getAllContainers = (creep: Creep, memory: Memory): StructureContainer[] => {
+  const post = getPost(creep, memory);
+
+  return post.allMinePos.map(p => creep.room.lookForAt(LOOK_STRUCTURES, p.x, p.y).find(s => s.structureType === "container"))
+    .filter(s => !!s)
+    .map(s => s as StructureContainer);
+}
+
+const getContainer = (creep: Creep, memory: Memory): StructureContainer | null => {
+  const post = getPost(creep, memory);
+  const sitePos = creep.room.getPositionAt(post.minePos.x, post.minePos.y);
+  if (!sitePos) {
+    throw new Error("Invalid mining post");
+  }
+  const container = sitePos.lookFor(LOOK_STRUCTURES).find(s => s.structureType === "container");
+  if (!container) {
+    return null;
+  }
+
+  return container as StructureContainer;
+}
+
+const getConstructionSite = (creep: Creep, memory: Memory): ConstructionSite | null => {
+  const post = getPost(creep, memory);
+
+  for (let i = 0; i < post.allMinePos.length; i++) {
+    const pos = post.allMinePos[i];
+
+    if (creep.room.lookForAt(LOOK_STRUCTURES, pos.x, pos.y).find(s => s.structureType === "container")) {
+      continue;
+    }
+
+    const site = creep.room.lookForAt(LOOK_CONSTRUCTION_SITES, pos.x, pos.y)[0];
+    if (site) {
+      return site;
+    }
+
+    creep.say("🚧");
+    creep.room.createConstructionSite(pos.x, pos.y, STRUCTURE_CONTAINER);
+    return creep.room.lookForAt(LOOK_CONSTRUCTION_SITES, pos.x, pos.y)[0] ?? null;
+  }
+
+  return null;
+}
+
+const getPost = (creep: Creep, memory: Memory): MineLocation => {
   const room = creep.room;
-  // if (memory.post) {
-  //   return memory.post;
-  // }
+  if (memory.post) {
+    return memory.post;
+  }
 
   const availablePost = existingMiningLocation(creep) ?? availableMiningLocation(room);
 
   if (!availablePost) {
-    return null;
+    throw new Error("No available post");
   }
 
   availablePost.creepName = creep.name;

@@ -6,7 +6,4 @@ export type CreepSpawnConfig = {
   memory: any;
 };
 
-export enum CreepJob {
-  upgrade = "upgrade",
-  spawnSupplier = "spawnSupplier"
-};
+
