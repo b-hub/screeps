@@ -62,14 +62,14 @@ const setNextRoleToSpawn = (creep: Creep): Role | null => {
 
   const creeps = creep.room.find(FIND_MY_CREEPS);
   const spawnSupplierRole: Role = "Supplier";
-  if (creeps.filter(c => c.memory.role === spawnSupplierRole).length < 1) {
+  if (creeps.filter(c => c.memory.role === spawnSupplierRole).length < 2) {
     spawn.memory.nextRole = spawnSupplierRole;
     return spawnSupplierRole;
   }
 
   const minerRole: Role = "HeavyMiner";
   const availableLocs = HeavyMiner.availableMiningLocations(creep.room).length;
-  if (availableLocs > 0) {
+  if (availableLocs > 0 && creeps.filter(c => c.memory.role === minerRole).length < 2) {
     spawn.memory.nextRole = minerRole;
     return role;
   }

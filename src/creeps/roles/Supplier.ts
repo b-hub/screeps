@@ -28,7 +28,7 @@ function* body(): CreepBodyGenerator {
 
   while (true) {
     // ensures that we always have enough movement for [WORK,CARRY]
-    currentBody = currentBody.concat([MOVE, WORK]);
+    currentBody = currentBody.concat([MOVE, CARRY]);
     yield currentBody;
     currentBody = currentBody.concat([CARRY]);
     yield currentBody;
@@ -51,12 +51,19 @@ export const run = (creep: Creep, memory: Memory) => {
 };
 
 const withdraw = (creep: Creep, memory: Memory): State => {
-  let container: StructureContainer | undefined;
+  let container: StructureContainer | StructureStorage | undefined;
   if (memory.containerPos) {
     container = creep.room.lookForAt(LOOK_STRUCTURES, memory.containerPos.x, memory.containerPos.y)
-    .filter(s => s.structureType === "container")
-    .map(s => s as StructureContainer)
+    .filter(s => s.structureType === "container" || s.structureType === "storage")
+    .map(s => s as StructureContainer | StructureStorage)
     .filter(s => s.store.getUsedCapacity("energy") > 0)[0];
+  }
+
+  if (!container) {
+    const storage = creep.room.find(FIND_STRUCTURES).find(s => s.structureType === "storage" && s.store.getUsedCapacity("energy") > 0);
+    if (storage) {
+      container = storage as StructureStorage;
+    }
   }
 
   if (!container) {
@@ -75,6 +82,9 @@ const withdraw = (creep: Creep, memory: Memory): State => {
   const result = creep.withdraw(container, "energy");
   if (result === ERR_NOT_IN_RANGE) {
     creep.moveTo(container);
+  } else if (result === ERR_NOT_ENOUGH_ENERGY) {
+    memory.containerPos = undefined;
+    return State.withdraw;
   }
 
   if (creep.store.getFreeCapacity() === 0) {
